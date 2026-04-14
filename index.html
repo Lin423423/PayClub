@@ -2,265 +2,52 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PayClub — 校園團體金流管理</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<title>PayClub — 校園金流管理</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+  
   :root {
-    --bg: #0a0a0f;
-    --surface: #12121a;
-    --card: #1a1a26;
-    --accent: #5b5ef4;
-    --accent2: #00e5c0;
-    --accent3: #ff6b6b;
-    --text: #f0f0ff;
-    --muted: #8888aa;
-    --border: rgba(255,255,255,0.07);
+    --bg: #020617;
+    --surface: #0f172a;
+    --card: #1e293b;
+    --accent: #6366f1;
+    --accent2: #10b981;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --border: rgba(148, 163, 184, 0.1);
+    --shadow: 0 4px 20px rgba(0,0,0,0.3);
   }
+
   * { margin:0; padding:0; box-sizing:border-box; }
-  html { scroll-behavior:smooth; }
-  body { background:var(--bg); color:var(--text); font-family:'Noto Sans TC',sans-serif; overflow-x:hidden; }
-  body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events:none; z-index:9999; opacity:0.4; }
-
-  nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:20px 60px; background:rgba(10,10,15,0.85); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
-  .logo { font-family:'Syne',sans-serif; font-weight:800; font-size:1.5rem; letter-spacing:-0.02em; display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--text); }
-  .logo-dot { width:10px; height:10px; background:var(--accent2); border-radius:50%; animation:pulse 2s ease-in-out infinite; }
-  @keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:0.7} }
-  nav ul { display:flex; gap:32px; list-style:none; align-items:center; }
-  nav a { color:var(--muted); text-decoration:none; font-size:0.9rem; font-weight:500; transition:color 0.2s; }
-  nav a:hover { color:var(--text); }
-  .nav-cta { background:var(--accent)!important; color:#fff!important; padding:10px 22px; border-radius:8px; font-weight:600!important; transition:all 0.2s!important; }
-  .nav-cta:hover { background:#7b7ef8!important; transform:translateY(-1px); }
-
-  .hero { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:120px 40px 80px; position:relative; overflow:hidden; }
-  .hero-bg { position:absolute; inset:0; background: radial-gradient(ellipse 60% 50% at 50% 0%,rgba(91,94,244,0.18) 0%,transparent 70%), radial-gradient(ellipse 40% 40% at 80% 60%,rgba(0,229,192,0.08) 0%,transparent 60%), radial-gradient(ellipse 30% 30% at 20% 70%,rgba(255,107,107,0.06) 0%,transparent 60%); }
-  .hero-tag { display:inline-flex; align-items:center; gap:8px; background:rgba(91,94,244,0.15); border:1px solid rgba(91,94,244,0.3); border-radius:100px; padding:6px 16px; font-size:0.8rem; color:#a0a3ff; letter-spacing:0.08em; text-transform:uppercase; font-weight:600; margin-bottom:32px; animation:fadeUp 0.8s ease both; }
-  .hero h1 { font-family:'Syne',sans-serif; font-size:clamp(3rem,8vw,6.5rem); font-weight:800; line-height:1.0; letter-spacing:-0.04em; margin-bottom:28px; animation:fadeUp 0.8s 0.1s ease both; }
-  .hero h1 span { background:linear-gradient(135deg,var(--accent2) 0%,var(--accent) 50%,#a78bfa 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-  .hero p { font-size:clamp(1rem,2vw,1.2rem); color:var(--muted); max-width:560px; line-height:1.8; margin-bottom:48px; font-weight:300; animation:fadeUp 0.8s 0.2s ease both; }
-  .hero-btns { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; animation:fadeUp 0.8s 0.3s ease both; }
-
-  .btn-primary { background:var(--accent); color:#fff; padding:16px 36px; border-radius:12px; font-size:1rem; font-weight:700; text-decoration:none; letter-spacing:0.02em; transition:all 0.2s; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px; font-family:'Noto Sans TC',sans-serif; }
-  .btn-primary:hover { background:#7b7ef8; transform:translateY(-2px); box-shadow:0 12px 32px rgba(91,94,244,0.4); }
-  .btn-secondary { background:transparent; color:var(--text); padding:16px 36px; border-radius:12px; font-size:1rem; font-weight:600; text-decoration:none; border:1px solid var(--border); transition:all 0.2s; cursor:pointer; display:inline-flex; align-items:center; gap:8px; font-family:'Noto Sans TC',sans-serif; }
-  .btn-secondary:hover { border-color:rgba(255,255,255,0.2); background:rgba(255,255,255,0.04); transform:translateY(-2px); }
-
-  .stats { border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:var(--surface); padding:40px 60px; display:flex; justify-content:center; gap:80px; flex-wrap:wrap; }
-  .stat { text-align:center; }
-  .stat-num { font-family:'Syne',sans-serif; font-size:2.5rem; font-weight:800; letter-spacing:-0.04em; background:linear-gradient(135deg,var(--accent2),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-  .stat-label { font-size:0.85rem; color:var(--muted); margin-top:4px; }
-
-  section.content { padding:100px 60px; max-width:1200px; margin:0 auto; }
-  .section-tag { font-size:0.75rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent2); font-weight:700; margin-bottom:16px; display:block; }
-  .section-title { font-family:'Syne',sans-serif; font-size:clamp(2rem,4vw,3rem); font-weight:800; letter-spacing:-0.03em; line-height:1.1; margin-bottom:20px; }
-  .section-sub { font-size:1.05rem; color:var(--muted); line-height:1.8; max-width:520px; font-weight:300; }
-
-  .features-wrap { background:var(--surface); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:100px 60px; }
-  .features-inner { max-width:1200px; margin:0 auto; }
-  .features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:60px; }
-  .feature-card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:32px 28px; transition:all 0.3s; position:relative; overflow:hidden; cursor:pointer; }
-  .feature-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--accent),var(--accent2)); opacity:0; transition:opacity 0.3s; }
-  .feature-card:hover { border-color:rgba(91,94,244,0.3); transform:translateY(-4px); box-shadow:0 20px 40px rgba(0,0,0,0.3); }
-  .feature-card:hover::before { opacity:1; }
-  .feat-icon { width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; margin-bottom:20px; }
-  .feat-icon.blue { background:rgba(91,94,244,0.15); }
-  .feat-icon.green { background:rgba(0,229,192,0.12); }
-  .feat-icon.purple { background:rgba(167,139,250,0.15); }
-  .feat-icon.orange { background:rgba(251,146,60,0.15); }
-  .feat-icon.red { background:rgba(255,107,107,0.12); }
-  .feat-icon.cyan { background:rgba(0,229,192,0.12); }
-  .feature-card h3 { font-family:'Syne',sans-serif; font-size:1.05rem; font-weight:700; margin-bottom:10px; }
-  .feature-card p { font-size:0.88rem; color:var(--muted); line-height:1.7; }
-
-  .demo-cta { background:linear-gradient(135deg,rgba(91,94,244,0.15),rgba(0,229,192,0.08)); border:1px solid rgba(91,94,244,0.25); border-radius:24px; padding:60px; text-align:center; margin-top:60px; }
-  .demo-cta h2 { font-family:'Syne',sans-serif; font-size:2.5rem; font-weight:800; letter-spacing:-0.03em; margin-bottom:16px; }
-  .demo-cta p { color:var(--muted); margin-bottom:36px; font-size:1.05rem; }
-  .demo-btns { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
-
-  .pricing-wrap { background:var(--surface); border-top:1px solid var(--border); padding:100px 60px; }
-  .pricing-inner { max-width:900px; margin:0 auto; text-align:center; }
-  .pricing-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:24px; margin-top:60px; text-align:left; }
-  .price-card { background:var(--card); border:1px solid var(--border); border-radius:24px; padding:36px 28px; transition:all 0.3s; position:relative; }
-  .price-card.featured { border-color:var(--accent); background:linear-gradient(135deg,rgba(91,94,244,0.15),rgba(91,94,244,0.05)); box-shadow:0 0 40px rgba(91,94,244,0.15); }
-  .price-badge { position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:var(--accent); color:#fff; font-size:0.7rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:4px 14px; border-radius:100px; white-space:nowrap; }
-  .price-tier { font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); font-weight:700; margin-bottom:16px; }
-  .price-amount { font-family:'Syne',sans-serif; font-size:2.8rem; font-weight:800; letter-spacing:-0.04em; line-height:1; margin-bottom:4px; }
-  .price-amount span { font-size:1rem; font-weight:400; color:var(--muted); }
-  .price-desc { font-size:0.82rem; color:var(--muted); margin-bottom:28px; line-height:1.6; }
-  .price-features { list-style:none; display:flex; flex-direction:column; gap:12px; margin-bottom:32px; }
-  .price-features li { font-size:0.88rem; display:flex; align-items:center; gap:10px; color:var(--muted); }
-  .price-features li::before { content:'✓'; color:var(--accent2); font-weight:700; flex-shrink:0; }
-  .price-features li.inactive { opacity:0.4; }
-  .price-features li.inactive::before { content:'×'; color:#666; }
-  .btn-price { width:100%; padding:14px; border-radius:10px; font-size:0.9rem; font-weight:700; cursor:pointer; text-align:center; letter-spacing:0.02em; border:none; transition:all 0.2s; font-family:'Noto Sans TC',sans-serif; }
-  .btn-price.outline { background:transparent; border:1px solid var(--border); color:var(--text); }
-  .btn-price.outline:hover { border-color:rgba(255,255,255,0.2); background:rgba(255,255,255,0.04); }
-  .btn-price.solid { background:var(--accent); color:#fff; }
-  .btn-price.solid:hover { background:#7b7ef8; box-shadow:0 8px 24px rgba(91,94,244,0.4); transform:translateY(-1px); }
-
-  footer { border-top:1px solid var(--border); padding:40px 60px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px; }
-  .footer-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:1.2rem; }
-  .footer-links { display:flex; gap:28px; list-style:none; }
-  .footer-links a { color:var(--muted); text-decoration:none; font-size:0.85rem; transition:color 0.2s; }
-  .footer-links a:hover { color:var(--text); }
-  .footer-copy { font-size:0.8rem; color:var(--muted); }
-
-  @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
-  .reveal { opacity:0; transform:translateY(32px); transition:all 0.7s cubic-bezier(0.16,1,0.3,1); }
-  .reveal.visible { opacity:1; transform:translateY(0); }
-
-  @media(max-width:768px) {
-    nav { padding:16px 24px; }
-    nav ul { display:none; }
-    section.content,.features-wrap,.pricing-wrap { padding:60px 24px; }
-    .stats { padding:32px 24px; gap:40px; }
-    footer { padding:32px 24px; }
-    .features-grid { grid-template-columns:1fr; }
-    .pricing-grid { grid-template-columns:1fr; }
-  }
+  body { background:var(--bg); color:var(--text); font-family:'Plus Jakarta Sans','Noto Sans TC',sans-serif; }
+  nav { display:flex; justify-content:space-between; align-items:center; padding:20px 8%; border-bottom:1px solid var(--border); }
+  .logo { font-size:24px; font-weight:800; color:var(--accent); }
+  .nav-btns { display:flex; gap:15px; }
+  .btn { padding:10px 24px; border-radius:12px; text-decoration:none; font-weight:600; transition:0.3s; }
+  .btn-outline { border:1px solid var(--accent); color:var(--accent); }
+  .btn-solid { background:var(--accent); color:white; }
+  .hero { padding:100px 8%; text-align:center; }
+  .hero h1 { font-size:56px; margin-bottom:20px; }
 </style>
 </head>
 <body>
 <nav>
-  <a class="logo" href="index.html"><div class="logo-dot"></div>PayClub</a>
-  <ul>
-    <li><a href="#features">功能</a></li>
-    <li><a href="#pricing">方案</a></li>
-    <li><a href="login.html">登入</a></li>
-    <li><a href="login.html?mode=register" class="nav-cta">免費開始</a></li>
-  </ul>
+  <div class="logo">PayClub</div>
+  <div class="nav-btns" id="navAction">
+    <a href="login.html" class="btn btn-outline">登入</a>
+    <a href="login.html?mode=register" class="btn btn-solid">免費開始</a>
+  </div>
 </nav>
-
 <section class="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-tag">🎓 專為校園社團打造的金流工具</div>
-  <h1>告別 LINE 催款<br><span>金流一鍵搞定</span></h1>
-  <p>PayClub 讓社團幹部不再手動追蹤繳費狀態。自動提醒、即時報表、一鍵收款——讓你把時間花在真正重要的事上。</p>
-  <div class="hero-btns">
-    <a href="login.html?mode=register" class="btn-primary">🚀 免費開始使用</a>
-    <a href="dashboard.html" class="btn-secondary">查看 Demo 儀表板 →</a>
-  </div>
+  <h1>更聰明的校園收款方式</h1>
+  <p>專為社團設計，讓財務管理變得簡單透明。</p>
 </section>
-
-<div class="stats">
-  <div class="stat reveal"><div class="stat-num">120萬</div><div class="stat-label">台灣在學大學生</div></div>
-  <div class="stat reveal"><div class="stat-num">10萬+</div><div class="stat-label">社團/班級數量</div></div>
-  <div class="stat reveal"><div class="stat-num">3~5hr</div><div class="stat-label">每次活動平均節省時間</div></div>
-  <div class="stat reveal"><div class="stat-num">$0</div><div class="stat-label">基本方案完全免費</div></div>
-</div>
-
-<section class="content" id="features">
-  <span class="section-tag">核心功能</span>
-  <h2 class="section-title">一個 APP<br>解決所有金流問題</h2>
-  <div class="features-grid" style="margin-top:60px">
-    <div class="feature-card reveal" onclick="location.href='dashboard.html'">
-      <div class="feat-icon blue">🔗</div>
-      <h3>一鍵建立收款連結</h3>
-      <p>設定活動名稱、金額與截止日，系統自動生成專屬收款連結，分享到任何平台即可。</p>
-    </div>
-    <div class="feature-card reveal" onclick="location.href='dashboard.html'">
-      <div class="feat-icon green">📡</div>
-      <h3>即時收款狀態追蹤</h3>
-      <p>儀表板即時顯示已繳/未繳人員名單，不用再手動比對，一目瞭然。</p>
-    </div>
-    <div class="feature-card reveal" onclick="location.href='dashboard.html'">
-      <div class="feat-icon purple">🔔</div>
-      <h3>自動催款提醒</h3>
-      <p>截止前 3 天、1 天自動推播提醒未繳者，讓系統幫你說難開口的話。</p>
-    </div>
-    <div class="feature-card reveal" onclick="location.href='report.html'">
-      <div class="feat-icon orange">📄</div>
-      <h3>財務報表自動生成</h3>
-      <p>收支明細、餘額總覽一鍵匯出 PDF，核銷、交接輕鬆搞定。</p>
-    </div>
-    <div class="feature-card reveal" onclick="location.href='dashboard.html'">
-      <div class="feat-icon cyan">👥</div>
-      <h3>多人共同管理</h3>
-      <p>可設定多位幹部不同權限，下一屆交接零痛苦，歷史紀錄永久保存。</p>
-    </div>
-    <div class="feature-card reveal" onclick="location.href='pay.html'">
-      <div class="feat-icon red">💳</div>
-      <h3>多元支付方式</h3>
-      <p>支援街口、LINE Pay、信用卡等主流支付，成員依喜好選擇，不再限制現金。</p>
-    </div>
-  </div>
-  <div class="demo-cta reveal">
-    <h2>立即體驗完整 Demo</h2>
-    <p>點擊下方按鈕，進入各個功能頁面實際操作</p>
-    <div class="demo-btns">
-      <a href="login.html" class="btn-primary">登入 / 註冊</a>
-      <a href="dashboard.html" class="btn-secondary">幹部儀表板</a>
-      <a href="create.html" class="btn-secondary">建立活動</a>
-      <a href="pay.html" class="btn-secondary">成員繳費頁</a>
-      <a href="report.html" class="btn-secondary">財務報表</a>
-    </div>
-  </div>
-</section>
-
-<div class="pricing-wrap" id="pricing">
-  <div class="pricing-inner">
-    <span class="section-tag">方案選擇</span>
-    <h2 class="section-title">適合每種規模的社團</h2>
-    <div class="pricing-grid reveal">
-      <div class="price-card">
-        <div class="price-tier">免費版</div>
-        <div class="price-amount">$0 <span>/月</span></div>
-        <div class="price-desc">小型班級或想先試用的幹部</div>
-        <ul class="price-features">
-          <li>每月最多 5 個活動</li>
-          <li>基本收款功能</li>
-          <li>收款狀態追蹤</li>
-          <li class="inactive">自動催款提醒</li>
-          <li class="inactive">PDF 報表匯出</li>
-        </ul>
-        <button class="btn-price outline" onclick="location.href='login.html?mode=register'">免費開始</button>
-      </div>
-      <div class="price-card featured">
-        <div class="price-badge">最受歡迎</div>
-        <div class="price-tier">進階版</div>
-        <div class="price-amount">$99 <span>/月</span></div>
-        <div class="price-desc">活躍社團幹部的最佳選擇</div>
-        <ul class="price-features">
-          <li>無限活動建立</li>
-          <li>全功能收款</li>
-          <li>即時狀態追蹤</li>
-          <li>自動催款提醒</li>
-          <li>PDF 報表匯出</li>
-        </ul>
-        <button class="btn-price solid" onclick="location.href='login.html?mode=register'">立即升級</button>
-      </div>
-      <div class="price-card">
-        <div class="price-tier">校方授權</div>
-        <div class="price-amount">$3萬 <span>/年</span></div>
-        <div class="price-desc">全校社聯或課外活動組統一管理</div>
-        <ul class="price-features">
-          <li>全校社團統一後台</li>
-          <li>無限幹部帳號</li>
-          <li>客製化報表</li>
-          <li>專屬客服支援</li>
-          <li>API 系統整合</li>
-        </ul>
-        <button class="btn-price outline">聯繫我們</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<footer>
-  <div class="footer-logo">PayClub</div>
-  <ul class="footer-links">
-    <li><a href="#">關於我們</a></li>
-    <li><a href="#">隱私政策</a></li>
-    <li><a href="login.html">登入</a></li>
-  </ul>
-  <div class="footer-copy">© 2025 PayClub · 跨校跨產業金融科技競賽提案</div>
-</footer>
-
+<script src="pc_auth.js"></script>
 <script>
-const obs = new IntersectionObserver(entries => {
-  entries.forEach((e,i) => { if(e.isIntersecting){ setTimeout(()=>e.target.classList.add('visible'),i*80); obs.unobserve(e.target); } });
-},{threshold:0.1});
-document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+  const user = PC_getUser();
+  if(user) {
+    document.getElementById('navAction').innerHTML = '<a href="dashboard.html" class="btn btn-solid">進入儀表板</a>';
+  }
 </script>
 </body>
 </html>
