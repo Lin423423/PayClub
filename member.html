@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>成員中心 — PayClub</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css"><script src="pc_auth.js"></script>
+<style>
+body{background:var(--bg);min-height:100vh;}
+.member-nav{background:var(--white);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:var(--shadow);}
+.nav-logo{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.2rem;color:var(--accent);display:flex;align-items:center;gap:8px;}
+.nav-logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;}
+.nav-user{display:flex;align-items:center;gap:10px;}
+.nav-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.82rem;font-weight:700;}
+.nav-name{font-size:0.88rem;font-weight:600;}
+.content{max-width:700px;margin:0 auto;padding:32px 20px;}
+
+/* Invite input */
+.invite-section{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);margin-bottom:24px;}
+.invite-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:6px;}
+.invite-sub{color:var(--text2);font-size:0.86rem;margin-bottom:18px;}
+.invite-input-row{display:flex;gap:10px;}
+.invite-input{flex:1;background:var(--white);border:1.5px solid var(--border);border-radius:9px;padding:12px 16px;font-size:1rem;font-family:'Noto Sans TC',sans-serif;color:var(--text);outline:none;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;}
+.invite-input:focus{border-color:var(--accent);}
+.invite-input::placeholder{letter-spacing:0;font-weight:400;text-transform:none;}
+
+/* Joined events */
+.events-title{font-size:0.9rem;font-weight:700;margin-bottom:12px;}
+.event-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:12px;box-shadow:var(--shadow);}
+.ec-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.ec-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:1rem;font-weight:700;}
+.ec-meta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+.ec-meta span{font-size:0.78rem;color:var(--text2);}
+.ec-my-status{background:var(--surface);border-radius:10px;padding:14px 16px;margin-bottom:12px;}
+.my-status-label{font-size:0.72rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;}
+.my-status-row{display:flex;align-items:center;justify-content:space-between;}
+.my-name{font-size:0.92rem;font-weight:700;}
+.ec-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
+.sum-box{background:var(--surface);border-radius:8px;padding:10px 12px;text-align:center;}
+.sum-label{font-size:0.68rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;}
+.sum-val{font-family:'Plus Jakarta Sans',sans-serif;font-size:1rem;font-weight:700;}
+.pay-btn{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all 0.15s;}
+.pay-btn:hover{background:var(--accent-dark);}
+.pay-btn:disabled{background:var(--green);cursor:default;}
+.empty-state{text-align:center;padding:48px 20px;color:var(--text2);}
+.empty-icon{font-size:2.5rem;margin-bottom:12px;opacity:0.4;}
+@media(max-width:480px){.invite-input-row{flex-direction:column;}.ec-summary{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<nav class="member-nav">
+  <div class="nav-logo"><div class="nav-logo-dot"></div>PayClub <span class="badge badge-blue" style="font-size:0.65rem;margin-left:4px">成員</span></div>
+  <div class="nav-user">
+    <div class="nav-avatar" id="navAvatar">M</div>
+    <div class="nav-name" id="navName">載入中</div>
+    <button class="logout-btn" onclick="PC_logout()">登出</button>
+  </div>
+</nav>
+
+<div class="content">
+  <div class="invite-section">
+    <div class="invite-title">🔑 輸入活動邀請碼</div>
+    <div class="invite-sub">向社團幹部索取 8 位邀請碼，輸入後即可加入活動</div>
+    <div class="invite-input-row">
+      <input type="text" id="inviteInput" class="invite-input" placeholder="例：ABC12345" maxlength="8" oninput="this.value=this.value.toUpperCase()">
+      <button class="btn btn-primary" onclick="joinEvent()">加入活動</button>
+    </div>
+    <div id="inviteErr" style="color:var(--red);font-size:0.78rem;margin-top:8px;display:none;"></div>
+  </div>
+
+  <div class="events-title" id="joinedTitle" style="display:none">我加入的活動</div>
+  <div id="joinedEvents"></div>
+  <div class="empty-state" id="emptyState">
+    <div class="empty-icon">🎫</div>
+    <p>尚未加入任何活動<br>輸入邀請碼開始！</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+const user=PC_requireLogin();if(!user)throw new Error('r');
+if(user.role==='leader'){location.href='dashboard.html';throw new Error('r');}
+document.getElementById('navAvatar').textContent=user.name.slice(0,1);
+document.getElementById('navName').textContent=user.name;
+
+// Member's joined events stored separately
+function getMemberEvents(){ return JSON.parse(localStorage.getItem('pc_member_events__'+user.email)||'[]'); }
+function saveMemberEvents(e){ localStorage.setItem('pc_member_events__'+user.email,JSON.stringify(e)); }
+
+// Find event by invite code across all users' data
+function findEventByCode(code){
+  // Search all pc_events__ keys
+  for(let i=0;i<localStorage.length;i++){
+    const key=localStorage.key(i);
+    if(key&&key.startsWith('pc_events__')){
+      const evts=JSON.parse(localStorage.getItem(key)||'[]');
+      const found=evts.find(e=>e.inviteCode&&e.inviteCode.toUpperCase()===code.toUpperCase());
+      if(found) return {event:found, ownerKey:key};
+    }
+  }
+  return null;
+}
+
+function joinEvent(){
+  const code=document.getElementById('inviteInput').value.trim().toUpperCase();
+  const errEl=document.getElementById('inviteErr');
+  if(code.length<4){errEl.textContent='請輸入邀請碼';errEl.style.display='block';return;}
+  const result=findEventByCode(code);
+  if(!result){errEl.textContent='找不到此邀請碼，請確認後重試';errEl.style.display='block';return;}
+  errEl.style.display='none';
+  const joined=getMemberEvents();
+  if(joined.find(j=>j.eventId===result.event.id)){PC_toast('你已經加入此活動了');return;}
+  // Ask member's name in the event
+  const memberName=prompt('請輸入你在活動中的姓名（讓幹部對應到你的資料）：',user.name);
+  if(!memberName)return;
+  joined.push({eventId:result.event.id,eventTitle:result.event.title,ownerKey:result.ownerKey,memberName:memberName.trim(),joinedAt:new Date().toISOString()});
+  saveMemberEvents(joined);
+  document.getElementById('inviteInput').value='';
+  PC_toast('✅ 已加入「'+result.event.title+'」');
+  renderJoined();
+}
+
+function renderJoined(){
+  const joined=getMemberEvents();
+  const container=document.getElementById('joinedEvents');
+  const emptyEl=document.getElementById('emptyState');
+  const titleEl=document.getElementById('joinedTitle');
+  if(!joined.length){emptyEl.style.display='block';titleEl.style.display='none';container.innerHTML='';return;}
+  emptyEl.style.display='none';titleEl.style.display='block';
+  container.innerHTML=joined.map((j,ji)=>{
+    // Get fresh event data
+    const evts=JSON.parse(localStorage.getItem(j.ownerKey)||'[]');
+    const evt=evts.find(e=>e.id===j.eventId);
+    if(!evt) return `<div class="event-card"><div style="color:var(--text3);font-size:0.84rem;">活動「${j.eventTitle}」已被刪除 <button onclick="leaveEvent(${ji})" style="color:var(--red);background:none;border:none;cursor:pointer;font-family:inherit;font-size:0.8rem;">移除</button></div></div>`;
+    const payers=PC_getPayers(evt);
+    const paid=payers.filter(m=>m.status==='paid').length;
+    const pct=payers.length?Math.round(paid/payers.length*100):0;
+    const myMember=(evt.members||[]).find(m=>m.name===j.memberName&&m.role==='payer');
+    const myStatus=myMember?(myMember.status==='paid'?{label:'已繳費',cls:'badge-green'}:{label:'待繳費',cls:'badge-orange'}):{label:'統計/觀察',cls:'badge-gray'};
+    const tagCls=evt.status==='active'?'badge-green':'badge-gray';
+    const dl=new Date(evt.deadline),days=Math.ceil((dl-new Date())/(1000*60*60*24));
+    return `<div class="event-card">
+      <div class="ec-header">
+        <div class="ec-title">${evt.title}</div>
+        <span class="badge ${tagCls}">${evt.status==='active'?'進行中':'已結束'}</span>
+      </div>
+      <div class="ec-meta">
+        <span>📅 截止：${evt.deadline}${days>0?' (剩'+days+'天)':' (已截止)'}</span>
+        <span>👥 ${payers.length} 位繳費成員</span>
+      </div>
+      ${myMember?`<div class="ec-my-status">
+        <div class="my-status-label">我的繳費狀態</div>
+        <div class="my-status-row">
+          <div class="my-name">${j.memberName}</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-weight:700;color:var(--green)">$${PC_getExpectedAmount(evt,myMember)}</span>
+            <span class="badge ${myStatus.cls}">${myStatus.label}</span>
+          </div>
+        </div>
+      </div>`:''}
+      <div class="ec-summary">
+        <div class="sum-box"><div class="sum-label">繳費率</div><div class="sum-val" style="color:${pct===100?'var(--green)':'var(--accent)'}">${pct}%</div></div>
+        <div class="sum-box"><div class="sum-label">已繳</div><div class="sum-val">${paid}/${payers.length}</div></div>
+        <div class="sum-box"><div class="sum-label">截止</div><div class="sum-val" style="font-size:0.82rem;${days<=3?'color:var(--red)':''}">${days>0?days+'天':'已到期'}</div></div>
+      </div>
+      ${myMember&&myMember.status!=='paid'?`<button class="pay-btn" onclick="location.href='pay.html?event=${evt.id}'">前往繳費頁面 →</button>`:''}
+      ${myMember&&myMember.status==='paid'?`<button class="pay-btn" disabled>✅ 已完成繳費</button>`:''}
+      <div style="text-align:right;margin-top:8px;"><button onclick="leaveEvent(${ji})" style="background:none;border:none;color:var(--text3);font-size:0.76rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">退出活動</button></div>
+    </div>`;
+  }).join('');
+}
+
+function leaveEvent(idx){
+  const joined=getMemberEvents();
+  if(!confirm('確定退出「'+joined[idx].eventTitle+'」？'))return;
+  joined.splice(idx,1);saveMemberEvents(joined);renderJoined();PC_toast('已退出活動');
+}
+
+renderJoined();
+</script>
+</body></html>

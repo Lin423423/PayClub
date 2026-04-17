@@ -24,8 +24,11 @@ body{display:flex;}
 .ec-check.checked{background:var(--accent);border-color:var(--accent);color:#fff;}
 .ec-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:8px;}
 .ec-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.95rem;font-weight:700;flex:1;line-height:1.3;}
-.ec-meta{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.ec-meta{display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
 .ec-meta span{font-size:0.76rem;color:var(--text2);}
+.ec-invite{background:var(--accent-light);border-radius:6px;padding:4px 10px;display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;}
+.ec-invite-code{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.82rem;font-weight:800;color:var(--accent);letter-spacing:0.1em;}
+.ec-invite-label{font-size:0.68rem;color:var(--accent);opacity:0.7;}
 .ec-revenue{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px;}
 .rev-box{background:var(--surface);border-radius:7px;padding:7px 10px;}
 .rev-label{font-size:0.65rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px;}
@@ -87,7 +90,7 @@ body{display:flex;}
 </main>
 <div class="toast" id="toast"></div>
 <script>
-const user=PC_requireLogin();if(!user)throw new Error('r');
+const user=PC_requireLeader();if(!user)throw new Error('r');
 PC_logActivity(user,'view_dashboard');
 const h=new Date().getHours();
 document.getElementById('greetMsg').textContent=(h<12?'早安':h<18?'午安':'晚安')+'，'+user.name+'！';
@@ -96,7 +99,10 @@ function openSidebar(){document.getElementById('sidebar').classList.add('open');
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mobileOverlay').classList.remove('show');}
 function renderSidebar(){
   const evts=PC_getEvents();
-  document.getElementById('sidebarEvents').innerHTML=evts.map(e=>{const p=PC_getPayers(e),paid=p.filter(m=>m.status==='paid').length,pct=p.length?Math.round(paid/p.length*100):0;return `<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span><span style="font-size:0.7rem;color:var(--text3);flex-shrink:0;margin-left:5px">${pct}%</span></a>`}).join('');
+  document.getElementById('sidebarEvents').innerHTML=evts.map(e=>{
+    const p=PC_getPayers(e),paid=p.filter(m=>m.status==='paid').length,pct=p.length?Math.round(paid/p.length*100):0;
+    return `<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span><span style="font-size:0.7rem;color:var(--text3);flex-shrink:0;margin-left:5px">${pct}%</span></a>`;
+  }).join('');
   PC_fillSidebarUser();
 }
 function renderStats(){
@@ -111,7 +117,7 @@ function renderStats(){
 }
 function toggleSel(){selMode=!selMode;selIds.clear();document.getElementById('selBtn').textContent=selMode?'✕ 結束':'☑ 選取';document.getElementById('selBtn').className=selMode?'btn btn-danger':'btn btn-ghost';document.getElementById('bulkBar').style.display='none';renderEvents();}
 function toggleCard(id,e){e.stopPropagation();if(selIds.has(id))selIds.delete(id);else selIds.add(id);const bar=document.getElementById('bulkBar');bar.style.display=selIds.size>0?'flex':'none';document.getElementById('bulkCount').textContent='已選 '+selIds.size+' 個';renderEvents();}
-function deleteBulk(){if(!selIds.size)return;if(!confirm('確定刪除 '+selIds.size+' 個活動？'))return;const evts=PC_getEvents().filter(e=>!selIds.has(e.id));PC_saveEvents(evts);const n=selIds.size;selIds.clear();document.getElementById('bulkBar').style.display='none';renderAll();PC_toast('已刪除 '+n+' 個活動');}
+function deleteBulk(){if(!selIds.size)return;if(!confirm('確定刪除 '+selIds.size+' 個活動？'))return;const n=selIds.size;const evts=PC_getEvents().filter(e=>!selIds.has(e.id));PC_saveEvents(evts);selIds.clear();document.getElementById('bulkBar').style.display='none';renderAll();PC_toast('已刪除 '+n+' 個活動');}
 function clearSel(){selIds.clear();document.getElementById('bulkBar').style.display='none';renderEvents();}
 function renderEvents(){
   const evts=PC_getEvents();const grid=document.getElementById('eventsGrid');
@@ -132,6 +138,7 @@ function renderEvents(){
       <div class="ec-meta" style="${selMode?'padding-left:26px':''}">
         <span>👥 ${p.length} 人</span><span>📅 ${e.deadline}</span>
       </div>
+      ${e.inviteCode?`<div class="ec-invite" style="${selMode?'margin-left:26px':''}"><span class="ec-invite-label">邀請碼</span><span class="ec-invite-code">${e.inviteCode}</span></div>`:''}
       <div class="ec-revenue">
         <div class="rev-box"><div class="rev-label">實收</div><div class="rev-val g">$${c.toLocaleString()}</div></div>
         <div class="rev-box"><div class="rev-label">應收</div><div class="rev-val">$${ex.toLocaleString()}</div></div>
