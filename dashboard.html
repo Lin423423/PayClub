@@ -104,7 +104,6 @@ body{display:flex;}
     <div><div class="page-title">總覽儀表板</div><div class="page-sub" id="greetMsg"></div></div>
   </div>
 
-  <!-- Stats -->
   <div class="stats-grid">
     <div class="stat-card"><div class="stat-label">總收款</div><div class="stat-val" id="sTotal" style="color:var(--green)">$0</div><div class="stat-sub">所有活動合計</div></div>
     <div class="stat-card"><div class="stat-label">應收金額</div><div class="stat-val" id="sExpected">$0</div><div class="stat-sub">全部總應收</div></div>
@@ -112,7 +111,6 @@ body{display:flex;}
     <div class="stat-card"><div class="stat-label">進行中活動</div><div class="stat-val" id="sActive">0</div><div class="stat-sub">個活動</div></div>
   </div>
 
-  <!-- Payment Methods Management -->
   <div class="pay-methods-panel">
     <div class="panel-header">
       <div class="panel-title">💳 繳費方式管理
@@ -124,7 +122,6 @@ body{display:flex;}
     <div class="methods-note">✅ 勾選啟用的繳費方式，成員在繳費頁將只看到已啟用的選項。點「+ 新增」可加入自訂方式（功能開發中）。</div>
   </div>
 
-  <!-- Bulk bar -->
   <div class="bulk-bar" id="bulkBar" style="display:none">
     <span id="bulkCount">已選 0 個</span>
     <button class="btn btn-danger" onclick="deleteBulk()">🗑 刪除所選</button>
@@ -138,7 +135,6 @@ body{display:flex;}
   <div class="events-grid" id="eventsGrid"></div>
 </main>
 
-<!-- Add custom method modal -->
 <div class="overlay" id="addMethodOverlay">
   <div class="modal">
     <div class="modal-title">新增自訂繳費方式</div>
@@ -153,33 +149,126 @@ body{display:flex;}
 </div>
 
 <div class="toast" id="toast"></div>
-// ... (HTML 結構保持不變)
+
 <script>
-// 修正：確保呼叫現有的驗證函式
+// 修復：此處呼叫補上的驗證函式，不會再導致後續程式碼中斷
 const user = PC_requireAdmin(); if(!user) throw new Error('r');
 PC_logActivity(user,'view_dashboard');
+const h = new Date().getHours();
+document.getElementById('greetMsg').textContent = (h<12?'早安':h<18?'午安':'晚安')+'，'+user.name+'！';
+let selMode=false, selIds=new Set();
 
-// ... (保留原本的時段問候邏輯)
+function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('mobileOverlay').classList.add('show');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mobileOverlay').classList.remove('show');}
 
-// 優化：繳費方式儲存邏輯，確保狀態同步
+// ── Payment methods ──
+const DEFAULT_METHODS = [
+  {id:'linepay', icon:'💚', name:'LINE Pay', active:true},
+  {id:'jkopay',  icon:'🔵', name:'街口支付', active:true},
+  {id:'credit',  icon:'💳', name:'信用卡',   active:true},
+  {id:'atm',     icon:'🏧', name:'ATM 轉帳', active:true},
+];
+function getPayMethods(){
+  const raw = localStorage.getItem('pc_pay_methods__'+user.email);
+  return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULT_METHODS));
+}
 function savePayMethods(){
-  const methods = getPayMethods();
+  const currentMethods = getPayMethods();
   const chips = document.querySelectorAll('.method-chip');
-  const updated = methods.map((m, i) => {
-    if(chips[i]) return { ...m, active: chips[i].classList.contains('active') };
-    return m;
+  const updated = currentMethods.map((m,i)=>{
+    const chip = chips[i];
+    return chip ? {...m, active: chip.classList.contains('active')} : m;
   });
-  localStorage.setItem('pc_pay_methods__' + user.email, JSON.stringify(updated));
+  localStorage.setItem('pc_pay_methods__'+user.email, JSON.stringify(updated));
   PC_toast('✅ 繳費方式已儲存');
 }
-
-// 修正：初始化順序，確保所有元件都能正確渲染
-function renderAll(){ 
-  renderStats(); 
-  renderEvents(); 
-  renderSidebar(); 
+function renderPayMethods(){
+  const methods = getPayMethods();
+  document.getElementById('methodsGrid').innerHTML = methods.map((m,i)=>`
+    <div class="method-chip${m.active?' active':''}" onclick="this.classList.toggle('active')">
+      <div class="method-icon">${m.icon}</div>
+      <div class="method-name">${m.name}</div>
+      <div class="method-toggle"></div>
+    </div>`).join('') + `<button class="add-method-btn" onclick="openAddMethod()">＋ 新增方式</button>`;
+}
+function openAddMethod(){ document.getElementById('addMethodOverlay').classList.add('show'); }
+function closeAddMethod(){ document.getElementById('addMethodOverlay').classList.remove('show'); }
+document.getElementById('addMethodOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAddMethod();});
+function addCustomMethod(){
+  const icon = document.getElementById('newMethodIcon').value.trim()||'💰';
+  const name = document.getElementById('newMethodName').value.trim();
+  if(!name){ PC_toast('請輸入繳費方式名稱'); return; }
+  const methods = getPayMethods();
+  methods.push({id:'custom_'+Date.now(), icon, name, active:true});
+  localStorage.setItem('pc_pay_methods__'+user.email, JSON.stringify(methods));
+  closeAddMethod();
+  document.getElementById('newMethodIcon').value='';
+  document.getElementById('newMethodName').value='';
+  renderPayMethods();
+  PC_toast('✅ 已新增「'+name+'」');
 }
 
+// ── Sidebar ──
+function renderSidebar(){
+  const evts = PC_getEvents();
+  document.getElementById('sidebarEvents').innerHTML = evts.map(e=>{
+    const p=PC_getPayers(e),paid=p.filter(m=>m.status==='paid').length,pct=p.length?Math.round(paid/p.length*100):0;
+    return `<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span><span style="font-size:0.7rem;color:var(--text3);flex-shrink:0;margin-left:5px">${pct}%</span></a>`;
+  }).join('');
+  PC_fillSidebarUser();
+}
+
+function renderStats(){
+  const evts=PC_getEvents(); let c=0,ex=0,pc=0,pt=0,ac=0;
+  evts.forEach(e=>{if(e.status==='active')ac++;c+=PC_getCollected(e);ex+=PC_getExpected(e);const p=PC_getPayers(e);pt+=p.length;pc+=p.filter(m=>m.status==='paid').length;});
+  document.getElementById('sTotal').textContent='$'+c.toLocaleString();
+  document.getElementById('sExpected').textContent='$'+ex.toLocaleString();
+  const r=pt?Math.round(pc/pt*100):0;
+  document.getElementById('sRate').textContent=r+'%';
+  document.getElementById('sRateSub').textContent=pc+' / '+pt+' 人';
+  document.getElementById('sActive').textContent=ac;
+}
+
+function toggleSel(){selMode=!selMode;selIds.clear();document.getElementById('selBtn').textContent=selMode?'✕ 結束':'☑ 選取';document.getElementById('selBtn').className=selMode?'btn btn-danger':'btn btn-ghost';document.getElementById('bulkBar').style.display='none';renderEvents();}
+function toggleCard(id,e){e.stopPropagation();if(selIds.has(id))selIds.delete(id);else selIds.add(id);const bar=document.getElementById('bulkBar');bar.style.display=selIds.size>0?'flex':'none';document.getElementById('bulkCount').textContent='已選 '+selIds.size+' 個';renderEvents();}
+function deleteBulk(){if(!selIds.size)return;if(!confirm('確定刪除 '+selIds.size+' 個活動？'))return;const n=selIds.size;const evts=PC_getEvents().filter(e=>!selIds.has(e.id));PC_saveEvents(evts);selIds.clear();document.getElementById('bulkBar').style.display='none';renderAll();PC_toast('已刪除 '+n+' 個活動');}
+function clearSel(){selIds.clear();document.getElementById('bulkBar').style.display='none';renderEvents();}
+
+function copyInvite(code,e){e.stopPropagation();PC_copyText(code,'🔑 邀請碼已複製：'+code);}
+
+function renderEvents(){
+  const evts=PC_getEvents(); const grid=document.getElementById('eventsGrid');
+  if(!evts.length){grid.innerHTML='<div class="empty-state"><div style="font-size:2.5rem;opacity:0.4;margin-bottom:12px">📭</div><p>還沒有活動，點左側「建立活動」開始</p></div>';return;}
+  grid.innerHTML=evts.map(e=>{
+    const p=PC_getPayers(e),paid=p.filter(m=>m.status==='paid').length,pct=p.length?Math.round(paid/p.length*100):0;
+    const c=PC_getCollected(e),ex=PC_getExpected(e);
+    const tc=e.status==='active'?'badge-green':'badge-gray';
+    const tt=e.status==='active'?'進行中':'已結束';
+    const isSel=selIds.has(e.id);
+    const oc=selMode?`toggleCard('${e.id}',event)`:`location.href='event.html?id=${e.id}'`;
+    const code=e.inviteCode||'';
+    const reqs=PC_getJoinRequests(e.id);
+    const pending=reqs.filter(r=>r.status==='pending').length;
+    return `<div class="event-card${isSel?' selected':''}" data-id="${e.id}" onclick="${oc}">
+      ${selMode?`<div class="ec-check${isSel?' checked':''}">${isSel?'✓':''}</div>`:''}
+      <div class="ec-top" style="${selMode?'padding-left:26px':''}">
+        <div class="ec-title">${e.title}${pending>0?` <span class="badge badge-orange" style="font-size:0.63rem">申請 ${pending}</span>`:''}</div>
+        <span class="badge ${tc}">${tt}</span>
+      </div>
+      <div class="ec-meta" style="${selMode?'padding-left:26px':''}"><span>👥 ${p.length} 人</span><span>📅 ${e.deadline}</span></div>
+      ${code?`<div class="ec-invite" onclick="copyInvite('${code}',event)"><span style="font-size:0.65rem;color:var(--accent);opacity:0.7">邀請碼</span><span class="ec-invite-code">${code}</span><span style="font-size:0.7rem;color:var(--accent);opacity:0.5">📋</span></div>`:''}
+      <div class="ec-revenue">
+        <div class="rev-box"><div class="rev-label">實收</div><div class="rev-val g">$${c.toLocaleString()}</div></div>
+        <div class="rev-box"><div class="rev-label">應收</div><div class="rev-val">$${ex.toLocaleString()}</div></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill${pct===100?' green':''}" style="width:${pct}%"></div></div>
+      <div class="ec-foot"><span>${paid}/${p.length} 人已繳</span><span style="font-weight:700;color:${pct===100?'var(--green)':'var(--text2)'}">${pct}%</span></div>
+      ${!selMode?'<div class="ec-arrow">→</div>':''}
+    </div>`;
+  }).join('');
+}
+
+function renderAll(){ renderStats(); renderEvents(); renderSidebar(); }
 renderPayMethods();
 renderAll();
 </script>
