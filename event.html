@@ -130,7 +130,7 @@ body{display:flex;}
       <button class="btn btn-ghost" onclick="renderPage()">🔄 更新</button>
       <button class="btn btn-ghost" id="joinReqBtn" onclick="toggleJoinPanel()" style="display:none">👥 加入申請 <span id="joinReqCount" class="badge badge-orange" style="margin-left:4px;display:none"></span></button>
       <button class="btn btn-ghost" onclick="sendReminder()">📣 催款</button>
-      <button class="btn btn-ghost" onclick="batchUpdateAmount()">💰 批次改金額</button>
+      <button class="btn btn-ghost" onclick="openAmtModal()">💰 繳費金額更改</button>
       <button class="btn btn-ghost" onclick="location.href='report.html'">📄 報表</button>
       <button class="btn btn-primary" onclick="openAdd()">+ 新增成員</button>
     </div>
@@ -228,15 +228,96 @@ const RL={payer:'繳費者',counter:'統計者',admin_member:'管理員',observe
 const RC={payer:'#4f6ef7',counter:'#d97706',admin_member:'#16a34a',observer:'#9ca3af'};
 const RB={payer:'badge-blue',counter:'badge-orange',admin_member:'badge-green',observer:'badge-gray'};
 
-function batchUpdateAmount(){
-  const newAmt = prompt("請輸入所有繳費者的新應繳金額：");
-  if(newAmt === null) return;
-  evt.members.forEach(m => {
-    if((m.role||[]).includes('payer')) m.customAmount = Number(newAmt);
+// ── 金額更改彈窗邏輯 ──
+function openAmtModal() {
+  // 篩選出所有「繳費者」
+  const payers = (evt.members || []).filter(m => {
+    const roles = Array.isArray(m.role) ? m.role : [m.role];
+    return roles.includes('payer') && m.status !== 'exited';
   });
+
+  if(payers.length === 0) {
+    PC_toast('名單中目前沒有繳費者');
+    return;
+  }
+
+  // 初始化預設狀態
+  document.getElementById('amtSelectAll').checked = true;
+  document.getElementById('batchAmtInput').value = '';
+
+  // 渲染名單列表
+  const listHtml = payers.map((m, i) => {
+    const amt = m.customAmount != null ? m.customAmount : (evt.amount || 0);
+    return `<div style="display:flex; align-items:center; gap:10px; padding:10px; border:1px solid var(--border); border-radius:8px;">
+       <input type="checkbox" class="amt-chk" value="${m.email}" checked style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);">
+       <div class="m-av" style="background:#4f6ef7">${(m.name||m.email||'?').slice(0,1).toUpperCase()}</div>
+       <div style="flex:1; min-width:0;">
+         <div style="font-size:0.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${m.name||'—'}</div>
+         <div style="font-size:0.7rem; color:var(--text3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${m.email}</div>
+       </div>
+       <div style="display:flex;align-items:center;gap:4px;">
+         <span style="color:var(--text2);font-weight:600;">$</span>
+         <input type="number" class="form-input amt-val-input" data-email="${m.email}" value="${amt}" style="width:80px; padding:6px 10px; font-size:0.85rem;" min="0">
+       </div>
+     </div>`;
+  }).join('');
+
+  document.getElementById('amtPayersList').innerHTML = listHtml;
+  document.getElementById('amtModalOverlay').classList.add('show');
+}
+
+function closeAmtModal() {
+  document.getElementById('amtModalOverlay').classList.remove('show');
+}
+
+function toggleAllAmt(isChecked) {
+  document.querySelectorAll('.amt-chk').forEach(chk => chk.checked = isChecked);
+}
+
+function applyBatchAmt() {
+  const val = document.getElementById('batchAmtInput').value;
+  if(val === '') { PC_toast('請輸入批次金額'); return; }
+  const checkboxes = document.querySelectorAll('.amt-chk');
+  const inputs = document.querySelectorAll('.amt-val-input');
+  
+  let appliedCount = 0;
+  checkboxes.forEach((chk, i) => {
+    if(chk.checked) {
+      inputs[i].value = val;
+      appliedCount++;
+    }
+  });
+  if(appliedCount > 0) PC_toast(`已套用至 ${appliedCount} 位成員`);
+}
+
+function saveAmtModal() {
+  const inputs = document.querySelectorAll('.amt-val-input');
+  let changedCount = 0;
+
+  // 整理每個信箱對應的新金額
+  const newAmts = {};
+  inputs.forEach(inp => {
+    newAmts[inp.getAttribute('data-email')] = Number(inp.value) || 0;
+  });
+
+  // 更新到資料庫
+  evt.members.forEach(m => {
+    const roles = Array.isArray(m.role) ? m.role : [m.role];
+    if(roles.includes('payer') && newAmts[m.email] !== undefined) {
+       const newA = newAmts[m.email];
+       if(m.customAmount !== newA) {
+         m.customAmount = newA;
+         changedCount++;
+         // 發送通知給該成員
+         PC_sendNotify(m.email, "金額更新", `活動《${evt.title}》你的應繳金額已更新為 $${newA}`);
+       }
+    }
+  });
+
   PC_saveEvents(PC_getEvents().map(x => x.id === eventId ? evt : x));
-  PC_sendNotify(m.email, "金額更新", `活動《${evt.title}》應繳金額已更新為 $${newAmt}`);
+  closeAmtModal();
   renderPage();
+  PC_toast(`✅ 成功更新 ${changedCount} 位成員的金額`);
 }
   
 function renderSidebar(){
@@ -502,6 +583,28 @@ renderPage();
     <div class="modal-actions">
       <button class="btn btn-ghost" style="flex:1" onclick="closeRoleModal()">取消</button>
       <button class="btn btn-primary" style="flex:2" onclick="confirmApprove()">確認加入</button>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="amtModalOverlay">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-title">💰 繳費金額更改</div>
+    
+    <div style="display:flex; gap:10px; align-items:center; background:var(--surface); padding:12px 14px; border-radius:9px; margin-bottom:16px;">
+       <input type="checkbox" id="amtSelectAll" onchange="toggleAllAmt(this.checked)" checked style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);">
+       <label for="amtSelectAll" style="font-size:0.85rem; font-weight:600; cursor:pointer;">全選</label>
+       <div style="flex:1;"></div>
+       <input type="number" id="batchAmtInput" class="form-input" style="width:120px; padding:6px 10px; font-size:0.85rem;" placeholder="輸入批次金額">
+       <button class="btn btn-primary" style="padding:6px 12px; font-size:0.8rem;" onclick="applyBatchAmt()">套用</button>
+    </div>
+
+    <div style="font-size:0.78rem; font-weight:700; color:var(--text2); text-transform:uppercase; margin-bottom:8px;">繳費者名單</div>
+    <div id="amtPayersList" style="max-height:40vh; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:18px; padding-right:4px;">
+       </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeAmtModal()">取消</button>
+      <button class="btn btn-primary" style="flex:2" onclick="saveAmtModal()">儲存更改</button>
     </div>
   </div>
 </div>
