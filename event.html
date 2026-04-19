@@ -128,7 +128,6 @@ body{display:flex;}
     </div>
   </div>
 
-  <!-- Join requests panel -->
   <div id="joinPanel" style="display:none;margin-bottom:16px;">
     <div class="req-card">
       <div class="req-header"><div class="req-title">👥 加入申請審核</div><button onclick="toggleJoinPanel()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:1.1rem;">✕</button></div>
@@ -187,7 +186,6 @@ body{display:flex;}
     </div>
   </div>
 </main>
-<!-- ADD MEMBER MODAL -->
 <div class="overlay" id="addOverlay">
   <div class="modal">
     <div class="modal-title">新增成員</div>
@@ -207,9 +205,12 @@ body{display:flex;}
   </div>
 </div>
 <div class="toast" id="toast"></div>
+
 <script>
-const user = PC_requireAdmin(); if(!user) throw new Error('r');
+// 修復驗證
+const user=PC_requireAdmin();if(!user)throw new Error('r');
 PC_fillSidebarUser();
+
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('mobileOverlay').classList.add('show');}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mobileOverlay').classList.remove('show');}
 const params=new URLSearchParams(location.search);
@@ -237,12 +238,10 @@ function renderPage(){
   document.getElementById('evtTitle').textContent=evt.title;
   document.getElementById('evtDesc').textContent=evt.desc||'';
   document.getElementById('deadlineDisplay').textContent=evt.deadline;
-  // Invite badge
   if(evt.inviteCode){
     document.getElementById('inviteBadge').style.display='inline-flex';
     document.getElementById('inviteCodeText').textContent=evt.inviteCode;
   }
-  // Join requests badge
   const reqs=PC_getJoinRequests(eventId);
   const pending=reqs.filter(r=>r.status==='pending').length;
   const jBtn=document.getElementById('joinReqBtn');
@@ -271,7 +270,6 @@ function renderPage(){
   document.getElementById('pOvd').textContent=ovd;
   const url=location.href.replace(/event\.html.*/,'')+'pay.html?event='+evt.id;
   document.getElementById('shareUrl').textContent=url;
-  // Same tab (no target=_blank)
   document.getElementById('previewLink').href=url;
   document.getElementById('previewLink').removeAttribute('target');
   renderMembers();renderSidebar();
@@ -283,7 +281,7 @@ function renderMembers(){
   if(cf==='paid')ms=ms.filter(m=>m.status==='paid');
   else if(cf==='pending')ms=ms.filter(m=>m.status==='pending');
   else if(cf==='overdue')ms=ms.filter(m=>m.status==='overdue');
-  if(!ms.length){document.getElementById('memberList').innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-size:0.84rem;">沒有符合的成員</div>';return;}
+  if(!ms.length){document.getElementById('memberList').innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-size:0.84rem;">無符合資料</div>';return;}
   document.getElementById('memberList').innerHTML=ms.map(m=>{
     const ri=(evt.members||[]).indexOf(m);
     const amt=m.role==='payer'?'$'+PC_getExpectedAmount(evt,m):'—';
@@ -318,30 +316,28 @@ function renderMembers(){
 }
 
 function setFilter(el,f){cf=f;document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderMembers();}
-function markPaid(i){const evts=PC_getEvents();const e=evts.find(x=>x.id===eventId);e.members[i].status='paid';e.members[i].paidAt=PC_nowStr();PC_saveEvents(evts);renderPage();PC_toast('✅ 已標記繳費');}
+function markPaid(i){const evts=PC_getEvents();const e=evts.find(x=>x.id===eventId);e.members[i].status='paid';e.members[i].paidAt=PC_nowStr();PC_saveEvents(evts);renderPage();PC_toast('✅ 已標記為已繳費');}
 function delMember(i){const n=(evt.members[i]||{}).email||(evt.members[i]||{}).name||'此成員';if(!confirm('移除「'+n+'」？'))return;const evts=PC_getEvents();const e=evts.find(x=>x.id===eventId);e.members.splice(i,1);PC_saveEvents(evts);renderPage();PC_toast('已移除 '+n);}
-function sendReminder(){const n=(evt.members||[]).filter(m=>m.role==='payer'&&m.status!=='paid').length;PC_toast('📣 已發送催款給 '+n+' 位未繳成員');}
+function sendReminder(){const n=(evt.members||[]).filter(m=>m.role==='payer'&&m.status!=='paid').length;PC_toast('📣 已發送通知給 '+n+' 位成員');}
 
-// Deadline editor
 function toggleDlEdit(){const r=document.getElementById('dlEditRow');const s=r.style.display==='none';r.style.display=s?'flex':'none';if(s)initDlSel();}
 function initDlSel(){const[y,m,d]=(evt.deadline||'2026-01-01').split('-').map(Number);const cy=new Date().getFullYear();const yr=document.getElementById('dlYear');yr.innerHTML='';for(let i=cy;i<=cy+5;i++){const o=document.createElement('option');o.value=i;o.textContent=i+'年';yr.appendChild(o);}yr.value=y;const mn=document.getElementById('dlMonth');mn.innerHTML='';for(let i=1;i<=12;i++){const o=document.createElement('option');o.value=i;o.textContent=i+'月';mn.appendChild(o);}mn.value=m;updateDlDays(d);}
 function updateDlDays(sv){const y=parseInt(document.getElementById('dlYear').value)||2026;const m=parseInt(document.getElementById('dlMonth').value)||1;const days=new Date(y,m,0).getDate();const dd=document.getElementById('dlDay');const pv=sv||parseInt(dd.value)||1;dd.innerHTML='';for(let i=1;i<=days;i++){const o=document.createElement('option');o.value=i;o.textContent=i+'日';dd.appendChild(o);}dd.value=Math.min(pv,days);}
-function saveDl(){const y=document.getElementById('dlYear').value,m=document.getElementById('dlMonth').value.padStart(2,'0'),d=document.getElementById('dlDay').value.padStart(2,'0');const nd=`${y}-${m}-${d}`;const evts=PC_getEvents();const e=evts.find(x=>x.id===eventId);e.deadline=nd;PC_saveEvents(evts);document.getElementById('dlEditRow').style.display='none';renderPage();PC_toast('✅ 截止日期更新為 '+nd);}
+function saveDl(){const y=document.getElementById('dlYear').value,m=document.getElementById('dlMonth').value.padStart(2,'0'),d=document.getElementById('dlDay').value.padStart(2,'0');const nd=`${y}-${m}-${d}`;const evts=PC_getEvents();const e=evts.find(x=>x.id===eventId);e.deadline=nd;PC_saveEvents(evts);document.getElementById('dlEditRow').style.display='none';renderPage();PC_toast('✅ 截止日已更新');}
 
-// Join requests
 let joinPanelOpen=false;
 function toggleJoinPanel(){joinPanelOpen=!joinPanelOpen;document.getElementById('joinPanel').style.display=joinPanelOpen?'block':'none';if(joinPanelOpen)renderJoinReqs();}
 function renderJoinReqs(){
   const reqs=PC_getJoinRequests(eventId);
   const list=document.getElementById('joinReqList');
-  if(!reqs.length){list.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3);font-size:0.84rem;">目前沒有加入申請</div>';return;}
+  if(!reqs.length){list.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3);font-size:0.84rem;">目前沒有申請</div>';return;}
   list.innerHTML=reqs.map((r,i)=>{
     const t=new Date(r.requestedAt).toLocaleString('zh-TW',{dateStyle:'short',timeStyle:'short'});
     const isPending=r.status==='pending';
     return `<div class="req-row">
       <div class="req-info">
         <div class="req-email">${r.email}</div>
-        <div class="req-name">${r.name} · 申請時間：${t}</div>
+        <div class="req-name">${r.name} · ${t}</div>
       </div>
       ${isPending?`<button class="approve-btn" onclick="approveReq(${i})">✓ 同意</button><button class="reject-btn" onclick="rejectReq(${i})">✕ 拒絕</button>`:`<span class="badge ${r.status==='approved'?'badge-green':'badge-red'}">${r.status==='approved'?'已同意':'已拒絕'}</span>`}
     </div>`;
@@ -350,8 +346,7 @@ function renderJoinReqs(){
 function approveReq(i){
   const reqs=PC_getJoinRequests(eventId);
   const req=reqs[i];
-  // Ask admin to choose role for this member
-  const roleChoice=prompt(`為 ${req.name}(${req.email}) 指定在此活動的角色：\n1 = 繳費者（需繳款）\n2 = 觀察者（看總覽）\n3 = 統計者（管帳）\n\n請輸入 1、2 或 3：`,'1');
+  const roleChoice=prompt(`指定角色：\n1 = 繳費者\n2 = 觀察者\n3 = 統計者`,'1');
   if(!roleChoice)return;
   const roleMap={'1':'payer','2':'observer','3':'counter'};
   const chosenRole=roleMap[roleChoice.trim()]||'payer';
@@ -365,16 +360,15 @@ function approveReq(i){
     e.members.push({email:req.email,name:req.name,role:chosenRole,status:chosenRole==='payer'?'pending':'none',paidAt:'',customAmount:null,txId:'',remark:''});
     PC_saveEvents(evts);
   }
-  renderPage();renderJoinReqs();PC_toast('✅ 已同意 '+req.email+' 以「'+(ROLE_LABELS[chosenRole]||chosenRole)+'」身份加入');
+  renderPage();renderJoinReqs();PC_toast('✅ 已加入');
 }
 function rejectReq(i){
   const reqs=PC_getJoinRequests(eventId);
   reqs[i].status='rejected';
   PC_saveJoinRequests(eventId,reqs);
-  renderJoinReqs();renderPage();PC_toast('已拒絕申請');
+  renderJoinReqs();renderPage();PC_toast('已拒絕');
 }
 
-// Add member
 function openAdd(){document.getElementById('addEmail').value='';document.getElementById('addRole').value='payer';document.getElementById('addAmt').value='';toggleAmt();document.getElementById('addOverlay').classList.add('show');}
 function closeAdd(){document.getElementById('addOverlay').classList.remove('show');}
 document.getElementById('addOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAdd();});
@@ -386,11 +380,11 @@ function addMember(){
   if(!email||!email.includes('@')){PC_toast('請輸入有效 Email');return;}
   const evts=PC_getEvents();const e=evts.find(x=>x.id===eventId);
   if(!e.members)e.members=[];
-  if(e.members.find(m=>m.email===email)){PC_toast('此 Email 已在成員名單中');return;}
+  if(e.members.find(m=>m.email===email)){PC_toast('已在名單中');return;}
   let ca=null;
   if(e.amountMode==='custom'&&role==='payer')ca=parseFloat(document.getElementById('addAmt').value)||0;
   e.members.push({email,name:email.split('@')[0],role,status:role==='payer'?'pending':'none',paidAt:'',customAmount:ca});
-  PC_saveEvents(evts);closeAdd();renderPage();PC_toast('✅ 已新增 '+email);
+  PC_saveEvents(evts);closeAdd();renderPage();PC_toast('✅ 已新增');
 }
 
 renderPage();
