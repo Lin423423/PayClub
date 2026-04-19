@@ -242,7 +242,27 @@ function renderStats(){
 // ── Select mode ──
 function toggleSel(){selMode=!selMode;selIds.clear();document.getElementById('selBtn').textContent=selMode?'✕ 結束':'☑ 選取';document.getElementById('selBtn').className=selMode?'btn btn-danger':'btn btn-ghost';document.getElementById('bulkBar').style.display='none';renderEvents();}
 function toggleCard(id,e){e.stopPropagation();if(selIds.has(id))selIds.delete(id);else selIds.add(id);const bar=document.getElementById('bulkBar');bar.style.display=selIds.size>0?'flex':'none';document.getElementById('bulkCount').textContent='已選 '+selIds.size+' 個';renderEvents();}
-function deleteBulk(){if(!selIds.size)return;if(!confirm('確定刪除 '+selIds.size+' 個活動？'))return;const n=selIds.size;const evts=PC_getEvents().filter(e=>!selIds.has(e.id));PC_saveEvents(evts);selIds.clear();document.getElementById('bulkBar').style.display='none';renderAll();PC_toast('已刪除 '+n+' 個活動');}
+
+// 🌟 修正：支援同時刪除主辦活動與移除加入紀錄
+function deleteBulk(){
+  if(!selIds.size)return;
+  if(!confirm('確定刪除或移除所選的 '+selIds.size+' 個活動紀錄？'))return;
+  const n=selIds.size;
+  
+  // 1. 刪除自己主辦的活動
+  const evts=PC_getEvents().filter(e=>!selIds.has(e.id));
+  PC_saveEvents(evts);
+  
+  // 2. 移除自己加入的活動紀錄
+  let joined = JSON.parse(localStorage.getItem('pc_member_joined__'+user.email)||'[]');
+  joined = joined.filter(j => !selIds.has(j.eventId));
+  localStorage.setItem('pc_member_joined__'+user.email, JSON.stringify(joined));
+
+  selIds.clear();
+  document.getElementById('bulkBar').style.display='none';
+  renderAll();
+  PC_toast('✅ 已處理 '+n+' 個活動');
+}
 function clearSel(){selIds.clear();document.getElementById('bulkBar').style.display='none';renderEvents();}
 
 // ── Copy invite ──
@@ -269,12 +289,17 @@ function renderEvents(){
     const reqs=PC_getJoinRequests(e.id);
     const pending=reqs.filter(r=>r.status==='pending').length;
     
-    return `<div class="event-card" onclick="location.href='${isOwner ? 'event.html?id='+e.id : 'member.html'}'">
-      <div class="ec-top">
+    // 🌟 修正：加回選取模式的判斷邏輯與打勾 UI
+    const isSel = selIds.has(e.id);
+    const oc = selMode ? `toggleCard('${e.id}',event)` : `location.href='${isOwner ? 'event.html?id='+e.id : 'member.html'}'`;
+
+    return `<div class="event-card ${isSel?'selected':''}" onclick="${oc}">
+      ${selMode ? `<div class="ec-check${isSel?' checked':''}">${isSel?'✓':''}</div>` : ''}
+      <div class="ec-top" style="${selMode?'padding-left:26px':''}">
         <div class="ec-title">${e.title}${pending>0&&isOwner?` <span class="badge badge-orange" style="font-size:0.63rem">申請 ${pending}</span>`:''}</div>
         <div><span class="badge ${tagClass}" style="font-size:0.6rem;margin-right:4px">${myRole}</span><span class="badge ${tc}">${tt}</span></div>
       </div>
-      <div class="ec-meta"><span>👥 ${p.length} 人</span><span>📅 ${e.deadline}</span></div>
+      <div class="ec-meta" style="${selMode?'padding-left:26px':''}"><span>👥 ${p.length} 人</span><span>📅 ${e.deadline}</span></div>
       ${code && isOwner?`<div class="ec-invite" onclick="copyInvite('${code}',event)"><span style="font-size:0.65rem;color:var(--accent);opacity:0.7">邀請碼</span><span class="ec-invite-code">${code}</span><span style="font-size:0.7rem;color:var(--accent);opacity:0.5">📋</span></div>`:''}
       <div class="ec-revenue">
         <div class="rev-box"><div class="rev-label">實收</div><div class="rev-val g">$${c.toLocaleString()}</div></div>
