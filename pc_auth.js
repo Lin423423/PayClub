@@ -133,8 +133,10 @@ function PC_fillSidebarUser(){
   const u = PC_getUser(); if(!u) return;
   const n = document.getElementById('userName');
   const a = document.getElementById('avatarInitial');
+  const r = document.getElementById('userEmail'); 
   if(n) n.textContent = u.name;
   if(a) a.textContent = u.name.slice(0,1);
+  if(r) r.textContent = u.email;
 }
 function PC_toast(msg, duration=2500){
   let t = document.getElementById('toast');
