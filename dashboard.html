@@ -252,25 +252,41 @@ function copyInvite(code,e){e.stopPropagation();PC_copyText(code,'🔑 邀請碼
 function renderEvents(){
   const evts = PC_getAllMyEvents(); 
   const grid = document.getElementById('eventsGrid');
+  if(!evts.length){grid.innerHTML='<div class="empty-state"><div style="font-size:2.5rem;opacity:0.4;margin-bottom:12px">📭</div><p>還沒有活動，點左側「建立活動」開始</p></div>';return;}
+  
   grid.innerHTML = evts.map(e => {
     const isOwner = e._isOwner;
-    const myRole = e._myMember ? (e._myMember.role || []).map(r => ROLE_LABELS[r]).join('+') : '主辦人';
+    const rolesArray = e._myMember ? (Array.isArray(e._myMember.role) ? e._myMember.role : [e._myMember.role]) : [];
+    const myRole = e._myMember ? rolesArray.map(r => ROLE_LABELS[r]||r).join(' + ') : '主辦人';
     const tagClass = isOwner ? 'badge-blue' : 'badge-orange';
+    
+    // 計算進度
+    const p=PC_getPayers(e),paid=p.filter(m=>m.status==='paid').length,pct=p.length?Math.round(paid/p.length*100):0;
+    const c=PC_getCollected(e),ex=PC_getExpected(e);
+    const tc=e.status==='active'?'badge-green':'badge-gray';
+    const tt=e.status==='active'?'進行中':'已結束';
+    const code=e.inviteCode||'';
+    const reqs=PC_getJoinRequests(e.id);
+    const pending=reqs.filter(r=>r.status==='pending').length;
     
     return `<div class="event-card" onclick="location.href='${isOwner ? 'event.html?id='+e.id : 'member.html'}'">
       <div class="ec-top">
-        <div class="ec-title">${e.title} <span class="badge ${tagClass}" style="font-size:0.6rem">${myRole}</span></div>
+        <div class="ec-title">${e.title}${pending>0&&isOwner?` <span class="badge badge-orange" style="font-size:0.63rem">申請 ${pending}</span>`:''}</div>
+        <div><span class="badge ${tagClass}" style="font-size:0.6rem;margin-right:4px">${myRole}</span><span class="badge ${tc}">${tt}</span></div>
       </div>
-      </div>`;
+      <div class="ec-meta"><span>👥 ${p.length} 人</span><span>📅 ${e.deadline}</span></div>
+      ${code && isOwner?`<div class="ec-invite" onclick="copyInvite('${code}',event)"><span style="font-size:0.65rem;color:var(--accent);opacity:0.7">邀請碼</span><span class="ec-invite-code">${code}</span><span style="font-size:0.7rem;color:var(--accent);opacity:0.5">📋</span></div>`:''}
+      <div class="ec-revenue">
+        <div class="rev-box"><div class="rev-label">實收</div><div class="rev-val g">$${c.toLocaleString()}</div></div>
+        <div class="rev-box"><div class="rev-label">應收</div><div class="rev-val">$${ex.toLocaleString()}</div></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill${pct===100?' green':''}" style="width:${pct}%"></div></div>
+      <div class="ec-foot"><span>${paid}/${p.length} 人已繳</span><span style="font-weight:700;color:${pct===100?'var(--green)':'var(--text2)'}">${pct}%</span></div>
+    </div>`;
   }).join('');
 }
 
-function renderAll(){ 
-  renderStats(); 
-  renderEvents(); 
-  renderSidebar(); 
-}
-
+function renderAll(){ renderStats(); renderEvents(); renderSidebar(); }
 renderPayMethods();
 renderAll();
 </script>
