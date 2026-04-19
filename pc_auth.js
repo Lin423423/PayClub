@@ -1,4 +1,5 @@
-// PayClub shared utilities v6 - 已修復版本
+// PayClub shared utilities v6
+
 // ── Auth (sessionStorage = per-tab isolation) ──
 function PC_getUser(){
   const sess = sessionStorage.getItem('pc_current_user');
@@ -14,6 +15,7 @@ function PC_requireLogin(){
 function PC_requireAdmin(){
   const user = PC_requireLogin();
   if(!user) return null;
+  // 未來若有全域管理員身分，可在此擴充邏輯
   return user;
 }
 
@@ -39,6 +41,7 @@ function PC_getEvents(){
 function PC_saveEvents(e){ localStorage.setItem(PC_eventsKey(PC_getUser()), JSON.stringify(e)); }
 function PC_getEvent(id){ return PC_getEvents().find(e=>e.id===id) || null; }
 
+// ── Per-activity role for current user ──
 function PC_getMyRoleInEvent(evt){
   const u = PC_getUser();
   if(!u) return null;
@@ -53,6 +56,7 @@ function PC_amIAdminOf(evt){
   return role === 'admin';
 }
 
+// ── Invite code ──
 function PC_genInviteCode(){
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
@@ -60,6 +64,7 @@ function PC_genInviteCode(){
   return code;
 }
 
+// ── Find event across ALL users' storage ──
 function PC_findEventByCode(code){
   const upper = code.toUpperCase().trim();
   for(let i=0;i<localStorage.length;i++){
@@ -89,9 +94,11 @@ function PC_findEventById(eventId){
   return null;
 }
 
+// ── Join requests ──
 function PC_getJoinRequests(eventId){ return JSON.parse(localStorage.getItem('pc_join_req__'+eventId)||'[]'); }
 function PC_saveJoinRequests(eventId, reqs){ localStorage.setItem('pc_join_req__'+eventId, JSON.stringify(reqs)); }
 
+// ── Update event in owner's storage ──
 function PC_updateEventInStorage(ownerKey, eventId, updateFn){
   const evts = JSON.parse(localStorage.getItem(ownerKey)||'[]');
   const idx = evts.findIndex(e=>e.id===eventId);
@@ -99,6 +106,7 @@ function PC_updateEventInStorage(ownerKey, eventId, updateFn){
   return false;
 }
 
+// ── User registry ──
 function PC_registerUser(user){
   const reg = JSON.parse(localStorage.getItem('pc_user_registry')||'[]');
   const now = new Date().toISOString();
@@ -118,6 +126,7 @@ function PC_logActivity(user, action){
   localStorage.setItem('pc_activity_log', JSON.stringify(logs));
 }
 
+// ── UI helpers ──
 function PC_fillSidebarUser(){
   const u = PC_getUser(); if(!u) return;
   const n = document.getElementById('userName');
@@ -137,6 +146,7 @@ function PC_nowStr(){
 }
 function PC_genTxId(){ return 'PC'+Date.now().toString(36).toUpperCase(); }
 
+// ── Financial helpers ──
 function PC_getPayers(event){ return (event.members||[]).filter(m=>m.role==='payer'); }
 function PC_getExpectedAmount(event, member){
   if(!member||member.role!=='payer') return 0;
