@@ -277,6 +277,7 @@ function renderPage(){
   renderMembers();renderSidebar();
 }
 
+function toggleMemberDetail(i){const el=document.getElementById("mdetail_"+i);if(el)el.style.display=el.style.display==="none"?"block":"none";}
 function renderMembers(){
   let ms=evt.members||[];
   if(cf==='paid')ms=ms.filter(m=>m.status==='paid');
@@ -288,16 +289,30 @@ function renderMembers(){
     const amt=m.role==='payer'?'$'+PC_getExpectedAmount(evt,m):'—';
     const bc=m.role!=='payer'?'badge-gray':(m.status==='paid'?'badge-green':m.status==='overdue'?'badge-red':'badge-orange');
     const bt=m.role!=='payer'?RL[m.role]:(m.status==='paid'?'已繳費':m.status==='overdue'?'逾期':'待繳費');
-    return `<div class="member-row">
-      <div class="m-av" style="background:${RC[m.role]||'#9ca3af'}">${(m.email||m.name||'?').slice(0,1).toUpperCase()}</div>
-      <div class="m-info">
-        <div class="m-name">${m.email||m.name||'—'} <span class="badge ${RB[m.role]||'badge-gray'}" style="font-size:0.63rem;padding:1px 6px">${RL[m.role]||m.role}</span></div>
-        <div class="m-email">${m.paidAt||'—'}</div>
+    const txDetail=m.txId?`<div style="font-size:0.72rem;color:var(--text3);margin-top:3px;">編號：${m.txId}${m.remark?' | 備註：'+m.remark:''}</div>`:'';
+    return `<div>
+      <div class="member-row" onclick="toggleMemberDetail(${ri})" style="cursor:pointer;">
+        <div class="m-av" style="background:${RC[m.role]||'#9ca3af'}">${(m.email||m.name||'?').slice(0,1).toUpperCase()}</div>
+        <div class="m-info">
+          <div class="m-name">${m.email||m.name||'—'} <span class="badge ${RB[m.role]||'badge-gray'}" style="font-size:0.63rem;padding:1px 6px">${RL[m.role]||m.role}</span></div>
+          <div class="m-email">${m.paidAt||'—'}</div>
+          ${txDetail}
+        </div>
+        <div class="m-amount">${amt}</div>
+        <span class="badge ${bc}">${bt}</span>
+        ${m.role==='payer'&&m.status!=='paid'?`<button class="mark-btn" onclick="event.stopPropagation();markPaid(${ri})">✓</button>`:''}
+        <button class="del-btn" onclick="event.stopPropagation();delMember(${ri})">✕</button>
       </div>
-      <div class="m-amount">${amt}</div>
-      <span class="badge ${bc}">${bt}</span>
-      ${m.role==='payer'&&m.status!=='paid'?`<button class="mark-btn" onclick="markPaid(${ri})">✓</button>`:''}
-      <button class="del-btn" onclick="delMember(${ri})">✕</button>
+      <div id="mdetail_${ri}" style="display:none;background:var(--surface);padding:10px 18px;border-bottom:1px solid var(--border);font-size:0.8rem;color:var(--text2);">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <div>📧 Email：<strong style="color:var(--text)">${m.email||'—'}</strong></div>
+          <div>💰 金額：<strong style="color:var(--text)">${amt}</strong></div>
+          <div>📅 繳費時間：<strong style="color:var(--text)">${m.paidAt||'—'}</strong></div>
+          <div>🏷 狀態：<strong style="color:var(--text)">${bt}</strong></div>
+          <div>🔢 交易編號：<strong style="color:var(--accent)">${m.txId||'—'}</strong></div>
+          <div>📝 備註：<strong style="color:var(--text)">${m.remark||'—'}</strong></div>
+        </div>
+      </div>
     </div>`;
   }).join('');
 }
@@ -335,17 +350,22 @@ function renderJoinReqs(){
 function approveReq(i){
   const reqs=PC_getJoinRequests(eventId);
   const req=reqs[i];
+  // Ask admin to choose role for this member
+  const roleChoice=prompt(`為 ${req.name}(${req.email}) 指定在此活動的角色：\n1 = 繳費者（需繳款）\n2 = 觀察者（看總覽）\n3 = 統計者（管帳）\n\n請輸入 1、2 或 3：`,'1');
+  if(!roleChoice)return;
+  const roleMap={'1':'payer','2':'observer','3':'counter'};
+  const chosenRole=roleMap[roleChoice.trim()]||'payer';
   req.status='approved';
+  req.approvedRole=chosenRole;
   PC_saveJoinRequests(eventId,reqs);
-  // Add as payer member
   const evts=PC_getEvents();
   const e=evts.find(x=>x.id===eventId);
   if(!e.members) e.members=[];
   if(!e.members.find(m=>m.email===req.email)){
-    e.members.push({email:req.email,name:req.name,role:'payer',status:'pending',paidAt:'',customAmount:null});
+    e.members.push({email:req.email,name:req.name,role:chosenRole,status:chosenRole==='payer'?'pending':'none',paidAt:'',customAmount:null,txId:'',remark:''});
     PC_saveEvents(evts);
   }
-  renderPage();renderJoinReqs();PC_toast('✅ 已同意 '+req.email+' 加入');
+  renderPage();renderJoinReqs();PC_toast('✅ 已同意 '+req.email+' 以「'+(ROLE_LABELS[chosenRole]||chosenRole)+'」身份加入');
 }
 function rejectReq(i){
   const reqs=PC_getJoinRequests(eventId);
