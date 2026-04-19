@@ -130,3 +130,16 @@ textarea.form-input{resize:vertical;}
 
 /* ── 列表顯示「已退出」 ── */
 .status-exited{opacity:0.6;filter:grayscale(1);}
+/* ── 側邊欄下拉選單 ── */
+.sidebar-menu-header { font-size:0.7rem; font-weight:700; color:var(--text3); letter-spacing:0.05em; padding:12px 10px 6px; margin-top:4px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; user-select:none; transition:color 0.15s; }
+.sidebar-menu-header:hover { color:var(--accent); }
+.sidebar-menu-list { display:none; flex-direction:column; }
+.sidebar-menu-list.open { display:flex; }
+.chevron { transition:transform 0.2s; font-size:0.6rem; }
+.chevron.open { transform:rotate(180deg); }
+
+/* ── 儀表板分類過濾器 ── */
+.dash-filter-wrap { display:flex; background:var(--surface); border-radius:8px; padding:3px; gap:2px; }
+.dash-filter-btn { background:transparent; border:none; padding:5px 14px; font-size:0.78rem; font-weight:600; color:var(--text2); border-radius:6px; cursor:pointer; transition:all 0.15s; font-family:'Noto Sans TC',sans-serif; }
+.dash-filter-btn:hover { color:var(--text); }
+.dash-filter-btn.active { background:var(--white); color:var(--accent); box-shadow:var(--shadow); }
