@@ -2,63 +2,26 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>建立活動 — PayClub</title>
+<title>通知中心 — PayClub</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css"><script src="pc_auth.js"></script>
 <style>
 body{display:flex;}
-.content{max-width:680px;width:100%;}
-.steps{display:flex;align-items:center;margin-bottom:28px;}
-.step-item{display:flex;align-items:center;gap:7px;}
-.step-circle{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:var(--text3);transition:all 0.25s;flex-shrink:0;}
-.step-item.active .step-circle{border-color:var(--accent);background:var(--accent);color:#fff;}
-.step-item.done .step-circle{border-color:var(--green);background:var(--green);color:#fff;}
-.step-label{font-size:0.8rem;font-weight:600;color:var(--text3);}
-.step-item.active .step-label{color:var(--accent);}
-.step-item.done .step-label{color:var(--green);}
-.step-line{flex:1;height:2px;background:var(--border);margin:0 8px;}
-.step-line.done{background:var(--green);}
-.form-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:14px;box-shadow:var(--shadow);}
-.form-card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:1rem;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
-.amount-tabs{display:flex;gap:0;background:var(--surface);border-radius:9px;padding:3px;margin-bottom:14px;}
-.amt-tab{flex:1;padding:9px;border:none;background:transparent;color:var(--text2);font-size:0.84rem;font-weight:600;cursor:pointer;border-radius:7px;transition:all 0.15s;font-family:'Noto Sans TC',sans-serif;text-align:center;}
-.amt-tab.active{background:var(--white);color:var(--text);box-shadow:var(--shadow);}
-.date-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
-.chip{padding:6px 13px;border-radius:100px;font-size:0.8rem;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--text2);transition:all 0.15s;user-select:none;font-family:'Noto Sans TC',sans-serif;}
-.chip.selected{border-color:var(--accent);background:var(--accent-light);color:var(--accent);}
-/* Member builder - email input */
-.member-add-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-bottom:10px;align-items:center;}
-.member-list{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
-.member-tag{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 14px;gap:8px;}
-.member-tag-left{display:flex;align-items:center;gap:8px;flex:1;min-width:0;}
-.m-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#fff;flex-shrink:0;}
-.m-email-text{font-size:0.85rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.role-badge{font-size:0.7rem;padding:2px 8px;border-radius:100px;font-weight:600;flex-shrink:0;}
-.role-counter{background:var(--orange-light);color:var(--orange);}
-.role-admin{background:var(--green-light);color:var(--green);}
-.m-remove{background:none;border:none;color:var(--text3);cursor:pointer;font-size:1rem;padding:2px;flex-shrink:0;}
-.m-remove:hover{color:var(--red);}
-.info-note{background:var(--accent-light);border-radius:8px;padding:10px 14px;font-size:0.8rem;color:var(--accent);line-height:1.6;margin-bottom:12px;border:1px solid #c7d2fe;}
-/* Preview */
-.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
-.prev-box{background:var(--surface);border-radius:9px;padding:12px 14px;}
-.prev-label{font-size:0.68rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;}
-.prev-val{font-weight:700;font-size:0.9rem;}
-.prev-table{width:100%;border-collapse:collapse;font-size:0.84rem;}
-.prev-table th{background:var(--surface);padding:8px 12px;text-align:left;font-size:0.72rem;color:var(--text2);font-weight:700;text-transform:uppercase;}
-.prev-table td{padding:8px 12px;border-bottom:1px solid var(--border);}
-.prev-table tr:last-child td{border-bottom:none;}
-/* Success */
-.success-box{background:var(--green-light);border:1px solid #bbf7d0;border-radius:var(--radius);padding:28px;text-align:center;}
-.link-box{background:var(--white);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;display:flex;align-items:center;gap:10px;margin:14px 0;text-align:left;}
-.link-url{font-size:0.8rem;color:var(--accent);flex:1;word-break:break-all;}
-.copy-btn-sm{background:var(--accent);color:#fff;border:none;padding:6px 13px;border-radius:7px;font-size:0.76rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Noto Sans TC',sans-serif;}
-.invite-display{background:var(--white);border:2px dashed var(--accent);border-radius:10px;padding:14px 18px;margin:12px 0;text-align:center;cursor:pointer;}
-.invite-display:hover{background:var(--accent-light);}
-.invite-code{font-family:'Plus Jakarta Sans',sans-serif;font-size:2rem;font-weight:800;letter-spacing:0.15em;color:var(--accent);}
-.invite-label{font-size:0.75rem;color:var(--text2);margin-top:4px;}
-@media(max-width:768px){.date-row{grid-template-columns:1fr 1fr;}.member-add-row{grid-template-columns:1fr auto;}.preview-grid{grid-template-columns:1fr;}}
+.content-wrap{max-width:760px;width:100%;margin:0 auto;}
+.notif-list{display:flex;flex-direction:column;gap:12px;margin-top:20px;}
+.notif-card{display:flex;gap:14px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:18px;cursor:pointer;transition:all 0.15s;position:relative;box-shadow:var(--shadow);}
+.notif-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 14px rgba(79,110,247,0.08);}
+.notif-card.read{background:var(--surface);opacity:0.8;box-shadow:none;}
+.notif-card.read:hover{border-color:var(--border2);transform:none;}
+.notif-icon{width:42px;height:42px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+.notif-card.read .notif-icon{background:var(--border);filter:grayscale(1);}
+.notif-content{flex:1;}
+.notif-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:6px;color:var(--text);}
+.notif-card.unread .notif-title{color:var(--accent);}
+.notif-desc{font-size:0.86rem;color:var(--text2);line-height:1.5;margin-bottom:8px;}
+.notif-time{font-size:0.72rem;color:var(--text3);}
+.unread-dot{width:10px;height:10px;background:var(--red);border-radius:50%;position:absolute;top:24px;right:20px;box-shadow:0 0 0 3px var(--white);}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text2);}
 </style>
 </head>
 <body>
@@ -77,7 +40,7 @@ body{display:flex;}
     <div class="nav-section">我的活動</div>
     <div id="sidebarEvents"></div>
     <a class="nav-item" href="index.html"><span class="icon">🌐</span>首頁</a>
-    <a class="nav-item" href="notifications.html" style="position:relative">
+    <a class="nav-item active" href="notifications.html" style="position:relative">
       <span class="icon">🔔</span>通知
       <span class="badge-notify" id="notifBadge" style="display:none">0</span>
     </a>
@@ -93,176 +56,129 @@ body{display:flex;}
     </div>
   </div>
 </aside>
+
 <main class="main">
-  <div class="topbar"><div><div class="page-title">建立收款活動</div><div class="page-sub">填寫資訊，系統自動生成收款連結與邀請碼</div></div></div>
-  <div class="steps" id="stepsBar">
-    <div class="step-item active" id="si1"><div class="step-circle">1</div><div class="step-label">活動資訊</div></div>
-    <div class="step-line" id="sl1"></div>
-    <div class="step-item" id="si2"><div class="step-circle">2</div><div class="step-label">成員設定</div></div>
-    <div class="step-line" id="sl2"></div>
-    <div class="step-item" id="si3"><div class="step-circle">3</div><div class="step-label">確認建立</div></div>
-  </div>
-  <div class="content">
-    <!-- STEP 1 -->
-    <div id="s1">
-      <div class="form-card">
-        <div class="form-card-title">📋 活動基本資訊</div>
-        <div class="form-group"><label class="form-label">活動名稱 *</label><input type="text" id="s1Title" class="form-input" placeholder="例：2025 迎新活動費用"></div>
-        <div class="form-group">
-          <label class="form-label">截止日期 *</label>
-          <div class="date-row">
-            <select id="dlYear" class="form-input" onchange="updateDays()"><option value="">年</option></select>
-            <select id="dlMonth" class="form-input" onchange="updateDays()"><option value="">月</option></select>
-            <select id="dlDay" class="form-input"><option value="">日</option></select>
-          </div>
-        </div>
-        <div class="form-group"><label class="form-label">活動說明</label><textarea id="s1Desc" class="form-input" rows="2" placeholder="成員繳費時會看到這段說明..."></textarea></div>
-        <div class="form-group">
-          <label class="form-label">自動催款提醒</label>
-          <div class="chips">
-            <div class="chip selected" onclick="this.classList.toggle('selected')">截止前 7 天</div>
-            <div class="chip selected" onclick="this.classList.toggle('selected')">截止前 3 天</div>
-            <div class="chip selected" onclick="this.classList.toggle('selected')">截止前 1 天</div>
-            <div class="chip" onclick="this.classList.toggle('selected')">截止當天</div>
-          </div>
-        </div>
+  <div class="content-wrap">
+    <div class="topbar">
+      <div>
+        <div class="page-title">通知中心</div>
+        <div class="page-sub">查看所有活動相關的最新消息與審核結果</div>
       </div>
-      <button class="btn btn-primary" onclick="goStep2()">下一步：設定成員 →</button>
-    </div>
-    <!-- STEP 2 -->
-    <div id="s2" style="display:none">
-      <div class="form-card">
-        <div class="form-card-title">👥 成員名單（選填）</div>
-        <div class="info-note">💡 繳費者可透過邀請碼自行申請加入，無需在此預先輸入。<br>此處可預先新增<strong>統計者</strong>（管帳協助）或<strong>管理員協同</strong>。</div>
-        <div class="member-add-row">
-          <input type="email" id="addEmail" class="form-input" placeholder="member@email.com" onkeydown="if(event.key==='Enter')addMember()">
-          <select id="addRole" class="form-input" style="min-width:100px" onchange="toggleCustomAmt()">
-            <option value="counter">統計者</option>
-            <option value="admin_member">管理員協同</option>
-          </select>
-          <button class="btn btn-primary" onclick="addMember()" style="white-space:nowrap">＋ 新增</button>
-        </div>
-        <div class="member-list" id="memberList">
-          <div style="text-align:center;padding:16px;color:var(--text3);font-size:0.84rem;">尚未預先新增成員（繳費者可透過邀請碼加入）</div>
-        </div>
-      </div>
-      <div style="display:flex;gap:10px;">
-        <button class="btn btn-ghost" onclick="goStep(1)">← 上一步</button>
-        <button class="btn btn-primary" style="flex:1" onclick="goStep3()">下一步：確認建立 →</button>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost" onclick="markAllRead()">✓ 全部標示為已讀</button>
+        <button class="btn btn-danger" onclick="clearAll()">🗑 清空紀錄</button>
       </div>
     </div>
-    <!-- STEP 3 -->
-    <div id="s3" style="display:none">
-      <div class="form-card">
-        <div class="form-card-title">✅ 確認活動資訊</div>
-        <div class="preview-grid" id="previewInfo"></div>
-        <div style="font-size:0.78rem;font-weight:700;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.04em;">預先新增成員</div>
-        <table class="prev-table"><thead><tr><th>Email</th><th>角色</th></tr></thead><tbody id="previewMembers"></tbody></table>
+    
+    <div class="notif-list" id="notifList">
       </div>
-      <div style="display:flex;gap:10px;">
-        <button class="btn btn-ghost" onclick="goStep(2)">← 上一步</button>
-        <button class="btn btn-primary" style="flex:1" onclick="submitCreate()">🚀 建立活動</button>
-      </div>
-    </div>
-    <!-- SUCCESS -->
-    <div id="sSuccess" style="display:none">
-      <div class="success-box">
-        <div style="font-size:2rem;margin-bottom:10px">🎉</div>
-        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.2rem;font-weight:800;margin-bottom:6px;">活動建立成功！</div>
-        <div style="color:var(--green);font-size:0.88rem;margin-bottom:4px;">分享邀請碼給繳費者，讓他們申請加入</div>
-        <div class="invite-display" onclick="copyInviteCode()" title="點擊複製">
-          <div class="invite-code" id="inviteCode">——</div>
-          <div class="invite-label">📋 點擊複製邀請碼</div>
-        </div>
-        <div style="font-size:0.78rem;color:var(--text2);margin-bottom:6px;">或分享收款連結</div>
-        <div class="link-box">
-          <div class="link-url" id="generatedLink">—</div>
-          <button class="copy-btn-sm" onclick="copyLink()">複製</button>
-        </div>
-        <div style="display:flex;gap:8px;justify-content:center;margin-top:4px;">
-          <button class="btn btn-ghost" onclick="location.href='dashboard.html'">回總覽</button>
-          <button class="btn btn-primary" onclick="goToEvent()">查看活動 →</button>
-        </div>
-      </div>
-    </div>
   </div>
 </main>
 <div class="toast" id="toast"></div>
+
 <script>
-const user = PC_requireAdmin(); if(!user) throw new Error('r');  
+// 驗證登入狀態
+const user = PC_requireLogin(); if(!user) throw new Error('r');
 PC_fillSidebarUser();
+
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('mobileOverlay').classList.add('show');}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mobileOverlay').classList.remove('show');}
-(function(){const evts=PC_getEvents();document.getElementById('sidebarEvents').innerHTML=evts.map(e=>`<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('');})();
-// Date init
-(function initDateSelector(){
-  const cy = new Date().getFullYear();
-  const yr = document.getElementById('dlYear');
-  yr.innerHTML = '<option value="">年</option>';
-  for(let y = cy; y <= cy + 5; y++){
-    const o = document.createElement('option');
-    o.value = y; o.textContent = y + '年';
-    yr.appendChild(o);
-  }
-  const mn = document.getElementById('dlMonth');
-  mn.innerHTML = '<option value="">月</option>';
-  for(let m = 1; m <= 12; m++){
-    const o = document.createElement('option');
-    o.value = m; o.textContent = m + '月';
-    mn.appendChild(o);
-  }
-  const defaultDate = new Date();
-  defaultDate.setDate(defaultDate.getDate() + 14);
-  yr.value = defaultDate.getFullYear();
-  mn.value = defaultDate.getMonth() + 1;
-  updateDays();
-  document.getElementById('dlDay').value = defaultDate.getDate();
-})();
-function updateDays(){
-  const y = parseInt(document.getElementById('dlYear').value);
-  const m = parseInt(document.getElementById('dlMonth').value);
-  if(!y || !m) return;
+
+// 渲染側邊欄活動
+function renderSidebar(){
+  const evts = PC_getAllMyEvents();
+  document.getElementById('sidebarEvents').innerHTML = evts.map(e => {
+    return `<a class="nav-event" href="${e._isOwner ? 'event.html?id='+e.id : 'member.html'}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`;
+  }).join('');
+}
+
+// 讀取通知資料庫
+function loadNotifs() {
+  const key = 'pc_notif__' + user.email;
+  return JSON.parse(localStorage.getItem(key) || '[]');
+}
+
+// 儲存通知資料庫
+function saveNotifs(list) {
+  const key = 'pc_notif__' + user.email;
+  localStorage.setItem(key, JSON.stringify(list));
+  PC_fillSidebarUser(); // 更新側邊欄的小紅點
+}
+
+// 渲染通知列表
+function renderNotifs() {
+  const list = loadNotifs();
+  const container = document.getElementById('notifList');
   
-  const daysInMonth = new Date(y, m, 0).getDate();
-  const dd = document.getElementById('dlDay');
-  const prevVal = dd.value;
-  
-  dd.innerHTML = '<option value="">日</option>';
-  for(let d = 1; d <= daysInMonth; d++){
-    const o = document.createElement('option');
-    o.value = d; o.textContent = d + '日';
-    dd.appendChild(o);
+  if(list.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div style="font-size:2.5rem;opacity:0.4;margin-bottom:12px">📭</div>
+        <p>目前沒有任何通知</p>
+      </div>`;
+    return;
   }
-  if(prevVal && parseInt(prevVal) <= daysInMonth) dd.value = prevVal;
+  
+  container.innerHTML = list.map(n => {
+    // 根據標題給予不同的 Emoji
+    let icon = '🔔';
+    if(n.title.includes('退出') || n.title.includes('移除')) icon = '👋';
+    if(n.title.includes('申請') || n.title.includes('加入')) icon = '👥';
+    if(n.title.includes('金額') || n.title.includes('款')) icon = '💰';
+    if(n.title.includes('拒絕')) icon = '❌';
+    
+    const timeStr = new Date(n.time).toLocaleString('zh-TW', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+    
+    return `
+      <div class="notif-card ${n.read ? 'read' : 'unread'}" onclick="markRead(${n.id})">
+        <div class="notif-icon">${icon}</div>
+        <div class="notif-content">
+          <div class="notif-title">${n.title}</div>
+          <div class="notif-desc">${n.content}</div>
+          <div class="notif-time">${timeStr}</div>
+        </div>
+        ${!n.read ? '<div class="unread-dot"></div>' : ''}
+      </div>
+    `;
+  }).join('');
 }
-let amtMode='per_person';
-function setAmtMode(m){amtMode=m;document.getElementById('tabPer').classList.toggle('active',m==='per_person');document.getElementById('tabCustom').classList.toggle('active',m==='custom');document.getElementById('perPersonWrap').style.display=m==='per_person'?'block':'none';document.getElementById('customWrap').style.display=m==='custom'?'block':'none';}
-let members=[];
-const RC={counter:'#d97706',admin_member:'#16a34a'};
-const RL={counter:'統計者',admin_member:'管理員協同'};
-const RB={counter:'role-counter',admin_member:'role-admin'};
-function toggleCustomAmt(){}
-function addMember(){
-  const email=document.getElementById('addEmail').value.trim();
-  const role=document.getElementById('addRole').value;
-  if(!email||!email.includes('@')){PC_toast('請輸入有效 Email');document.getElementById('addEmail').focus();return;}
-  if(members.find(m=>m.email===email)){PC_toast('此 Email 已新增');return;}
-  members.push({email,name:email.split('@')[0],role,status:'none',paidAt:'',customAmount:null});
-  document.getElementById('addEmail').value='';document.getElementById('addEmail').focus();renderMemberList();
+
+// 單筆標示為已讀
+function markRead(id) {
+  const list = loadNotifs();
+  const notif = list.find(x => x.id === id);
+  if(notif && !notif.read) {
+    notif.read = true;
+    saveNotifs(list);
+    renderNotifs();
+  }
 }
-function removeMember(i){members.splice(i,1);renderMemberList();}
-function renderMemberList(){
-  const list=document.getElementById('memberList');
-  if(!members.length){list.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);font-size:0.84rem;">尚未預先新增成員（繳費者可透過邀請碼加入）</div>';return;}
-  list.innerHTML=members.map((m,i)=>`<div class="member-tag"><div class="member-tag-left"><div class="m-av" style="background:${RC[m.role]||'#9ca3af'}">${m.email.slice(0,1).toUpperCase()}</div><div class="m-email-text">${m.email}</div><span class="role-badge ${RB[m.role]||''}">${RL[m.role]||m.role}</span></div><button class="m-remove" onclick="removeMember(${i})">✕</button></div>`).join('');
+
+// 全部標示為已讀
+function markAllRead() {
+  const list = loadNotifs();
+  let changed = false;
+  list.forEach(n => {
+    if(!n.read) { n.read = true; changed = true; }
+  });
+  if(changed) {
+    saveNotifs(list);
+    renderNotifs();
+    PC_toast('✅ 已全部標示為已讀');
+  }
 }
-function goStep(n){[1,2,3].forEach(i=>{document.getElementById('s'+i).style.display=i===n?'block':'none';document.getElementById('si'+i).className='step-item'+(i<n?' done':i===n?' active':'');if(i<3)document.getElementById('sl'+i).className='step-line'+(i<n?' done':'');});document.getElementById('sSuccess').style.display='none';}
-function goStep2(){const title=document.getElementById('s1Title').value.trim();const y=document.getElementById('dlYear').value,mo=document.getElementById('dlMonth').value,d=document.getElementById('dlDay').value;if(!title){PC_toast('請填寫活動名稱');return;}if(!y||!mo||!d){PC_toast('請選擇完整截止日期');return;}goStep(2);}
-function goStep3(){const y=document.getElementById('dlYear').value,mo=document.getElementById('dlMonth').value.padStart(2,'0'),d=document.getElementById('dlDay').value.padStart(2,'0');const dl=`${y}-${mo}-${d}`;const amt=0;document.getElementById('previewInfo').innerHTML=`<div class="prev-box"><div class="prev-label">活動名稱</div><div class="prev-val">${document.getElementById('s1Title').value}</div></div><div class="prev-box"><div class="prev-label">截止日期</div><div class="prev-val">${dl}</div></div><div class="prev-box"><div class="prev-label">金額模式</div><div class="prev-val">${amtMode==='per_person'?'每人 $'+amt:'建立後設定'}</div></div><div class="prev-box"><div class="prev-label">預先新增成員</div><div class="prev-val">${members.length} 人</div></div>`;document.getElementById('previewMembers').innerHTML=members.length?members.map(m=>`<tr><td>${m.email}</td><td><span class="badge ${m.role==='counter'?'badge-orange':'badge-green'}">${RL[m.role]}</span></td></tr>`).join(''):'<tr><td colspan="2" style="color:var(--text3);text-align:center">無（繳費者將透過邀請碼加入）</td></tr>';goStep(3);}
-let createdId=null,createdCode='';
-function submitCreate(){const title=document.getElementById('s1Title').value.trim();const y=document.getElementById('dlYear').value,mo=document.getElementById('dlMonth').value.padStart(2,'0'),d=document.getElementById('dlDay').value.padStart(2,'0');const dl=`${y}-${mo}-${d}`;const desc=document.getElementById('s1Desc').value.trim();const amt=0;const code=PC_genInviteCode();const evts=PC_getEvents();createdId='e'+Date.now();createdCode=code;const newEvt={id:createdId,title,amountMode:amtMode,amount:amt,deadline:dl,desc,status:'active',inviteCode:code,members:members.map(m=>({...m}))};evts.unshift(newEvt);PC_saveEvents(evts);document.getElementById('inviteCode').textContent=code;const link=location.href.replace('create.html','pay.html')+'?event='+createdId;document.getElementById('generatedLink').textContent=link;[1,2,3].forEach(i=>{document.getElementById('s'+i).style.display='none';document.getElementById('si'+i).className='step-item done';if(i<3)document.getElementById('sl'+i).className='step-line done';});document.getElementById('sSuccess').style.display='block';}
-function copyInviteCode(){PC_copyText(createdCode,'🔑 邀請碼已複製：'+createdCode);}
-function copyLink(){PC_copyText(document.getElementById('generatedLink').textContent,'🔗 連結已複製');}
-function goToEvent(){location.href='event.html?id='+createdId;}
+
+// 清空所有紀錄
+function clearAll() {
+  const list = loadNotifs();
+  if(list.length === 0) return;
+  if(!confirm('確定要清空所有通知紀錄嗎？這項操作無法復原。')) return;
+  saveNotifs([]);
+  renderNotifs();
+  PC_toast('🗑 通知已清空');
+}
+
+renderSidebar();
+renderNotifs();
 </script>
 </body></html>
