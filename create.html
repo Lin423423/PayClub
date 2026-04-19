@@ -101,49 +101,34 @@ body{display:flex;}
       </div>
     </div>
 
-    <div id="sSuccess" class="card" style="display:none;text-align:center;padding:48px 32px;">
-      <div style="font-size:3.5rem;margin-bottom:16px;">✨</div>
+    <div id="sSuccess" class="card" style="display:none;text-align:center;">
       <h2 style="margin-bottom:12px;">活動建立成功！</h2>
-      <p style="color:var(--text2);margin-bottom:32px;">您可以將連結或邀請碼分享給成員。</p>
-      
-      <div style="background:var(--accent-light);border:1.5px dashed var(--accent);border-radius:12px;padding:24px;margin-bottom:24px;">
-        <div style="font-size:0.75rem;font-weight:700;color:var(--accent);margin-bottom:8px;">專屬邀請碼</div>
-        <div id="inviteCode" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:2.2rem;font-weight:800;color:var(--accent);letter-spacing:4px;"></div>
+      <div style="background:var(--accent-light);padding:24px;border-radius:12px;margin-bottom:24px;">
+        <div id="inviteCode" style="font-size:2rem;font-weight:800;color:var(--accent);letter-spacing:4px;"></div>
       </div>
-
       <div class="form-group" style="text-align:left;">
         <label class="form-label">繳費連結</label>
-        <div style="display:flex;gap:8px;">
-          <div id="generatedLink" class="form-input" style="background:var(--bg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.85rem;color:var(--text2);"></div>
-          <button class="btn btn-ghost" onclick="copyInviteCode()">複製</button>
-        </div>
+        <div id="generatedLink" class="form-input" style="background:var(--bg);font-size:0.8rem;word-break:break-all;"></div>
       </div>
-
-      <div style="margin-top:32px;">
-        <button class="btn btn-primary" style="width:100%" onclick="location.href='dashboard.html'">進入儀表板</button>
-      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="location.href='dashboard.html'">進入儀表板</button>
     </div>
   </div>
 </main>
 
 <script>
-// 初始化日期下拉選單
 const yS=document.getElementById('dlYear'), mS=document.getElementById('dlMonth'), dS=document.getElementById('dlDay');
 const now=new Date();
 for(let i=0; i<3; i++) yS.add(new Option(now.getFullYear()+i, now.getFullYear()+i));
 for(let i=1; i<=12; i++) mS.add(new Option(i, i));
 for(let i=1; i<=31; i++) dS.add(new Option(i, i));
-mS.value=now.getMonth()+1; dS.value=now.getDate();
 
 let amtMode = 'fixed';
+let members = []; 
 
 function goStep(n){
   [1,2,3].forEach(i=>{
     document.getElementById('s'+i).style.display = (i===n)?'block':'none';
-    const it = document.getElementById('si'+i);
-    it.className = (i<n)?'step-item done':(i===n)?'step-item active':'step-item';
-    const ln = document.getElementById('sl'+i);
-    if(ln) ln.className = (i<n)?'step-line done':'step-line';
+    document.getElementById('si'+i).className = (i<n)?'step-item done':(i===n)?'step-item active':'step-item';
   });
 }
 
@@ -156,56 +141,42 @@ function setMode(m){
 
 function preview(){
   const title = document.getElementById('s1Title').value.trim();
-  if(!title){ PC_toast('請輸入活動名稱'); return; }
-  
+  if(!title){ PC_toast('請輸入名稱'); return; }
   document.getElementById('pTitle').textContent = title;
   document.getElementById('pDl').textContent = `${yS.value}-${mS.value}-${dS.value}`;
-  document.getElementById('pMode').textContent = amtMode==='fixed'?'固定金額':'彈性金額';
-  document.getElementById('pAmt').textContent = amtMode==='fixed'?'$'+(document.getElementById('fixedAmt').value||0):'由繳費者填寫';
+  document.getElementById('pMode').textContent = amtMode==='fixed'?'固定':'彈性';
+  document.getElementById('pAmt').textContent = '$'+(document.getElementById('fixedAmt').value||0);
   goStep(3);
 }
 
 function submitCreate(){
   const user = PC_getUser();
-  if(!user){ PC_toast('登入逾時，請重新登入'); return; }
-
   const title = document.getElementById('s1Title').value.trim();
   const dl = `${yS.value}-${mS.value.padStart(2,'0')}-${dS.value.padStart(2,'0')}`;
-  const desc = document.getElementById('s1Desc').value.trim();
-  const amt = amtMode === 'fixed' ? (document.getElementById('fixedAmt').value || 0) : 0;
   const code = Math.random().toString(36).substring(2,8).toUpperCase();
   const id = 'e' + Date.now();
 
   const newEvt = {
     id: id,
     title: title,
-    ownerEmail: user.email, // 💡 關鍵：存入目前登入者的 Email
+    ownerEmail: user.email, // 💡 補上這一行，解決管理權限問題
     amountMode: amtMode,
-    amount: amt,
+    amount: document.getElementById('fixedAmt').value || 0,
     deadline: dl,
-    desc: desc,
+    desc: document.getElementById('s1Desc').value.trim(),
     status: 'active',
     inviteCode: code,
-    members: [] // 初始成員為空，主辦人不需要把自己加入 members 列表也能管理
+    members: []
   };
 
   const evts = PC_getEvents();
   evts.unshift(newEvt);
   PC_saveEvents(evts);
 
-  // 顯示結果
   document.getElementById('inviteCode').textContent = code;
-  const link = location.origin + location.pathname.replace('create.html', 'pay.html') + '?event=' + id;
-  document.getElementById('generatedLink').textContent = link;
-
-  goStep(4); // 隱藏步驟，顯示成功
+  document.getElementById('generatedLink').textContent = location.href.replace('create.html','pay.html')+'?event='+id;
   document.getElementById('s3').style.display = 'none';
   document.getElementById('sSuccess').style.display = 'block';
-}
-
-function copyInviteCode(){
-  const link = document.getElementById('generatedLink').textContent;
-  PC_copyText(link, '✅ 繳費連結已複製');
 }
 </script>
 </body>
