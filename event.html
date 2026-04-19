@@ -7,16 +7,32 @@
 <link rel="stylesheet" href="shared.css"><script src="pc_auth.js"></script>
 <style>
 body{display:flex;}
-.member-row{display:flex;align-items:center;padding:14px 18px;background:var(--white);border-bottom:1px solid var(--border);transition:all 0.2s;}
+.content{max-width:1100px;width:100%;}
+.breadcrumb{display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--text3);margin-bottom:20px;}
+.breadcrumb a{color:inherit;text-decoration:none;transition:color 0.15s;}
+.breadcrumb a:hover{color:var(--accent);}
+.header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;}
+.page-title{font-size:2rem;font-weight:800;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:32px;}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow-sm);}
+.stat-label{font-size:0.75rem;font-weight:700;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;}
+.stat-value{font-family:'Plus Jakarta Sans',sans-serif;font-size:1.75rem;font-weight:800;color:var(--text);line-height:1;}
+.stat-value.g{color:var(--green);}.stat-sub{font-size:0.75rem;color:var(--text3);margin-top:8px;}
+.main-grid{display:grid;grid-template-columns:1fr 320px;gap:24px;}
+.card-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.card-title{font-size:1rem;font-weight:700;color:var(--text);}
+.member-row{display:flex;align-items:center;padding:14px 24px;background:var(--white);border-bottom:1px solid var(--border);transition:all 0.15s;}
 .member-row:hover{background:var(--surface);}
-.m-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.9rem;margin-right:12px;flex-shrink:0;}
+.m-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.9rem;margin-right:12px;flex-shrink:0;}
 .m-info{flex:1;min-width:0;}.m-name{font-weight:700;font-size:0.92rem;color:var(--text);margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.m-email{font-size:0.75rem;color:var(--text3);}
-.m-amount{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:0.95rem;color:var(--text);margin:0 12px;}
-/* 操作按鈕樣式 */
+.m-email{font-size:0.75rem;color:var(--text3);}.m-amount{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:0.95rem;color:var(--text);margin:0 16px;}
+.share-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow-sm);}
+.share-link-box{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:0.8rem;color:var(--text2);word-break:break-all;margin:12px 0;line-height:1.4;}
+/* 修正後的操作按鈕樣式 */
+.member-ops{display:flex;gap:6px;margin-left:12px;}
 .mark-btn, .del-btn{width:28px;height:28px;border-radius:6px;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;font-size:0.8rem;}
-.mark-btn{background:var(--accent-light);color:var(--accent);}.mark-btn:hover{background:var(--accent);color:#fff;}
-.del-btn{background:var(--red-light);color:var(--red);}.del-btn:hover{background:var(--red);color:#fff;}
+.mark-btn{background:var(--surface);color:var(--text3);}.mark-btn:hover{background:var(--accent-light);color:var(--accent);}
+.del-btn{background:var(--surface);color:var(--text3);}.del-btn:hover{background:var(--red-light);color:var(--red);}
 </style>
 </head>
 <body>
@@ -24,18 +40,68 @@ body{display:flex;}
 <script>renderSidebar();</script>
 
 <main class="main">
-  <div class="content" style="max-width:900px; width:100%;">
-    <div id="eventHeader" class="card" style="padding:24px; margin-bottom:20px;">
-        <h1 id="eventTitle" class="page-title">載入中...</h1>
-        <p id="eventDesc" style="color:var(--text2); font-size:0.9rem; margin-top:8px;"></p>
+  <div class="content">
+    <div class="breadcrumb"><a href="dashboard.html">總覽</a> <span>›</span> <span id="bcTitle">...</span></div>
+    
+    <div class="header-row">
+      <div>
+        <h1 class="page-title"><span id="evtTitle">...</span> <span id="inviteBadge" class="badge badge-blue" style="display:none;font-size:0.7rem;padding:3px 10px;cursor:pointer;" onclick="copyInviteCode()"><span style="opacity:0.6;margin-right:4px">邀請碼</span> <span id="inviteCodeText"></span> <span style="margin-left:4px;opacity:0.5">📋</span></span></h1>
+        <p id="evtDesc" style="color:var(--text2);font-size:0.95rem;"></p>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button class="btn btn-ghost" onclick="location.reload()" style="padding:8px 14px;font-size:0.8rem">🔄 更新</button>
+        <button class="btn btn-ghost" id="joinReqBtn" onclick="openJoinRequests()" style="padding:8px 14px;font-size:0.8rem;display:none;">👥 加入申請 <span id="joinReqCount" class="badge badge-orange" style="margin-left:5px;font-size:0.65rem">0</span></button>
+        <button class="btn btn-ghost" onclick="sendReminder()" style="padding:8px 14px;font-size:0.8rem">🔔 催款</button>
+        <button class="btn btn-ghost" onclick="location.href='report.html?event='+eventId" style="padding:8px 14px;font-size:0.8rem">📄 報表</button>
+        <button class="btn btn-primary" onclick="openAdd()" style="padding:8px 16px;font-size:0.8rem">+ 新增成員</button>
+      </div>
     </div>
 
-    <div class="card" style="padding:0; overflow:hidden;">
-      <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; background:var(--white);">
-        <h3 style="font-size:1rem;">成員列表</h3>
-        <button class="btn btn-primary" id="addBtn" onclick="openAdd()" style="padding:6px 12px; font-size:0.8rem;">+ 新增成員</button>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">實收</div><div id="sC" class="stat-value g">$0</div><div class="stat-sub">已繳合計</div></div>
+      <div class="stat-card"><div class="stat-label">應收金額</div><div id="sE" class="stat-value">$0</div><div class="stat-sub">繳費者總應收</div></div>
+      <div class="stat-card"><div class="stat-label">待收</div><div id="sP" class="stat-value" style="color:var(--orange)">$0</div><div id="sPsub" class="stat-sub">0 人未繳</div></div>
+      <div class="stat-card"><div class="stat-label">截止倒數</div><div id="sDays" class="stat-value" style="font-size:1.5rem">--</div><div id="sDl" class="stat-sub">----/--/--</div></div>
+    </div>
+
+    <div class="main-grid">
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div class="card-header">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="card-title">成員繳費狀態</div>
+            <div class="dash-filter-wrap" style="background:var(--bg)">
+              <button class="dash-filter-btn active" onclick="setCf('all',this)">全部</button>
+              <button class="dash-filter-btn" onclick="setCf('paid',this)">已繳</button>
+              <button class="dash-filter-btn" onclick="setCf('pending',this)">待繳</button>
+              <button class="dash-filter-btn" onclick="setCf('overdue',this)">逾期</button>
+            </div>
+          </div>
+        </div>
+        <div id="memberList"></div>
       </div>
-      <div id="memberList"></div>
+
+      <div class="side-col">
+        <div class="share-card" style="margin-bottom:24px;">
+          <h3 style="font-size:0.9rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px;">📊 收款進度</h3>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+            <span style="font-size:0.75rem;color:var(--text3)">繳費率</span>
+            <span id="progPct" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.4rem;font-weight:800;color:var(--text)">0%</span>
+          </div>
+          <div class="progress-bar" style="height:10px;margin-bottom:20px;"><div id="progFill" class="progress-fill" style="width:0%"></div></div>
+          <div style="display:grid;grid-template-columns:1fr;gap:10px;font-size:0.8rem;">
+            <div style="display:flex;justify-content:space-between;"><span>🟢 已繳：</span><span id="pPaid" style="font-weight:700">0 人</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>🟡 待繳：</span><span id="pPend" style="font-weight:700">0 人</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>🔴 逾期：</span><span id="pOvd" style="font-weight:700">0 人</span></div>
+          </div>
+        </div>
+
+        <div class="share-card">
+          <h3 style="font-size:0.9rem;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px;">🔗 成員繳費連結</h3>
+          <div id="shareUrl" class="share-link-box">載入中...</div>
+          <button class="btn btn-primary" style="width:100%;margin-bottom:10px;" onclick="copyShareUrl()">複製連結</button>
+          <a id="previewLink" href="#" class="btn btn-ghost" style="width:100%;text-decoration:none;display:flex;align-items:center;justify-content:center;">預覽繳費頁面 →</a>
+        </div>
+      </div>
     </div>
   </div>
 </main>
@@ -61,8 +127,10 @@ body{display:flex;}
 <div class="overlay" id="deleteConfirmOverlay">
   <div class="modal" style="max-width:320px; text-align:center;">
     <div style="font-size:2rem; margin-bottom:10px;">⚠️</div>
-    <div class="modal-title">確定要刪除嗎？</div>
-    <p style="font-size:0.85rem; color:var(--text2); margin-bottom:20px;">此操作將移除該成員所有紀錄。</p>
+    <div class="modal-title">確定要刪除成員嗎？</div>
+    <p style="font-size:0.85rem; color:var(--text2); margin-bottom:20px;">
+      將移除「<span id="delTargetName" style="color:var(--text);font-weight:700"></span>」的所有紀錄。
+    </p>
     <div class="modal-actions">
       <button class="btn btn-ghost" style="flex:1" onclick="closeDeleteModal()">取消</button>
       <button class="btn btn-danger" style="flex:1" onclick="executeDelete()">確認刪除</button>
@@ -73,77 +141,143 @@ body{display:flex;}
 <script>
 const eventId = new URLSearchParams(location.search).get('id');
 let evt = null;
+let cf = 'all'; 
 let targetIdx = -1;
 
+const RL={payer:'繳費者',counter:'統計者',admin:'管理員'},RB={payer:'badge-blue',counter:'badge-orange',admin:'badge-purple'};
+
 function renderPage(){
-  evt = PC_getEvents().find(e => e.id === eventId);
+  evt = PC_getEvent(eventId);
+  if(!evt){location.href='dashboard.html';return;}
   const u = PC_getUser();
-  if(!evt) { location.href='dashboard.html'; return; }
-
-  // 權限判斷：防呆支援舊活動
   const isOwner = !evt.ownerEmail || evt.ownerEmail === u.email;
-  
-  document.getElementById('eventTitle').textContent = evt.title;
-  document.getElementById('eventDesc').textContent = evt.desc || '暫無說明';
-  document.getElementById('addBtn').style.display = isOwner ? 'block' : 'none';
+  const mRecord = evt.members.find(m => m.email === u.email);
+  const roles = mRecord ? (Array.isArray(mRecord.role) ? mRecord.role : [mRecord.role]) : [];
 
-  renderMembers(isOwner);
+  document.getElementById('bcTitle').textContent = evt.title;
+  document.getElementById('evtTitle').textContent = evt.title;
+  document.getElementById('evtDesc').textContent = evt.desc||'';
+  
+  if(evt.inviteCode){
+    document.getElementById('inviteBadge').style.display='inline-flex';
+    document.getElementById('inviteCodeText').textContent=evt.inviteCode;
+  }
+
+  const p=PC_getPayers(evt),paid=p.filter(m=>m.status==='paid').length,pend=p.filter(m=>m.status==='pending').length,ovd=p.filter(m=>m.status==='overdue').length;
+  const pct=p.length?Math.round(paid/p.length*100):0;
+  const c=PC_getCollected(evt),e=PC_getExpected(evt);
+  
+  document.getElementById('sC').textContent='$'+c.toLocaleString();
+  document.getElementById('sE').textContent='$'+e.toLocaleString();
+  document.getElementById('sP').textContent='$'+(e-c).toLocaleString();
+  document.getElementById('sPsub').textContent=(pend+ovd)+' 人未繳';
+  
+  const dl=new Date(evt.deadline),days=Math.ceil((dl-new Date())/(1000*60*60*24));
+  const de=document.getElementById('sDays');
+  de.textContent=days>0?'剩 '+days+' 天':'已截止';
+  de.style.color=days<=3?'var(--red)':'inherit';
+  document.getElementById('sDl').textContent=evt.deadline;
+  
+  document.getElementById('progPct').textContent=pct+'%';
+  document.getElementById('progFill').style.width=pct+'%';
+  if(pct===100)document.getElementById('progFill').classList.add('green');
+  
+  document.getElementById('pPaid').textContent=paid+' 人';
+  document.getElementById('pPend').textContent=pend+' 人';
+  document.getElementById('pOvd').textContent=ovd+' 人';
+
+  const url=location.href.replace(/event\.html.*/,'')+'pay.html?event='+evt.id;
+  document.getElementById('shareUrl').textContent=url;
+  document.getElementById('previewLink').href=url;
+
+  renderMembers(roles, isOwner);
 }
 
-function renderMembers(isOwner){
-  const ms = evt.members || [];
+function setCf(f,el){
+  cf=f;
+  document.querySelectorAll('.dash-filter-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const u = PC_getUser();
+  const isOwner = !evt.ownerEmail || evt.ownerEmail === u.email;
+  const mRecord = evt.members.find(m => m.email === u.email);
+  const roles = mRecord ? (Array.isArray(mRecord.role) ? mRecord.role : [mRecord.role]) : [];
+  renderMembers(roles, isOwner);
+}
+
+function renderMembers(userRoles, isOwner){
+  let ms = evt.members||[];
+  if(cf==='paid')ms=ms.filter(m=>m.status==='paid');
+  else if(cf==='pending')ms=ms.filter(m=>m.status==='pending');
+  else if(cf==='overdue')ms=ms.filter(m=>m.status==='overdue');
+
   const list = document.getElementById('memberList');
-  
   if(!ms.length){
-    list.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text3);">尚無成員</div>';
+    list.innerHTML='<div style="text-align:center;padding:48px;color:var(--text3);font-size:0.85rem;">目前沒有成員資料</div>';
     return;
   }
 
-  list.innerHTML = ms.map((m, ri) => {
-    const stClass = m.status==='paid'?'badge-green':m.status==='overdue'?'badge-red':'badge-orange';
-    const stText = m.status==='paid'?'已繳費':m.status==='overdue'?'逾期':'待繳費';
-    
-    return `
-      <div class="member-row">
+  list.innerHTML=ms.map(m=>{
+    const ri=(evt.members||[]).indexOf(m);
+    const roles = Array.isArray(m.role) ? m.role : [m.role];
+    const isPayer = roles.includes('payer');
+    const amt = isPayer ? '$'+PC_getExpectedAmount(evt,m) : '—';
+    const bc = m.status==='paid'?'badge-green':m.status==='overdue'?'badge-red':'badge-orange';
+    const bt = m.status==='paid'?'已繳費':m.status==='overdue'?'逾期':'待繳費';
+    const roleBadges = roles.map(r=>`<span class="badge ${RB[r]||'badge-gray'}" style="font-size:0.63rem;padding:1px 6px">${RL[r]||r}</span>`).join(' ');
+
+    return `<div>
+      <div class="member-row" onclick="toggleMemberDetail(${ri})" style="cursor:pointer;">
         <div class="m-av" style="background:#94a3b8">${(m.name||m.email||'?')[0].toUpperCase()}</div>
         <div class="m-info">
-          <div class="m-name">${m.name || m.email}</div>
+          <div class="m-name">${m.name || m.email} ${roleBadges}</div>
           <div class="m-email">${m.email}</div>
         </div>
-        <div class="m-amount">$${m.customAmount || evt.amount}</div>
-        <span class="badge ${stClass}">${stText}</span>
-        
+        <div class="m-amount">${amt}</div>
+        <span class="badge ${bc}">${bt}</span>
         ${isOwner ? `
-          <div style="display:flex; gap:6px; margin-left:12px;">
-            <button class="mark-btn" onclick="openStatusModal(${ri})">⚙️</button>
-            <button class="del-btn" onclick="confirmDeleteMember(${ri})">✕</button>
+          <div class="member-ops">
+            <button class="mark-btn" onclick="event.stopPropagation(); openStatusModal(${ri})">⚙️</button>
+            <button class="del-btn" onclick="event.stopPropagation(); confirmDeleteMember(${ri})">✕</button>
           </div>
         ` : ''}
       </div>
-    `;
+      <div id="mdetail_${ri}" style="display:none;background:var(--surface);padding:15px 24px;border-bottom:1px solid var(--border);font-size:0.8rem;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>📧 Email：<strong>${m.email}</strong></div>
+          <div>💰 金額：<strong>${amt}</strong></div>
+          <div>📅 繳費時間：<strong>${m.paidAt||'—'}</strong></div>
+          <div>🔢 交易編號：<strong>${m.txId||'—'}</strong></div>
+        </div>
+      </div>
+    </div>`;
   }).join('');
 }
 
-// 彈窗邏輯
+function toggleMemberDetail(ri){
+  const el=document.getElementById('mdetail_'+ri);
+  el.style.display = el.style.display==='none'?'block':'none';
+}
+
 function openStatusModal(idx){
   targetIdx = idx;
   document.getElementById('newStatusSelect').value = evt.members[idx].status;
   document.getElementById('statusModalOverlay').classList.add('show');
 }
-function closeStatusModal(){ document.getElementById('statusModalOverlay').classList.remove('show'); }
+function closeStatusModal(){document.getElementById('statusModalOverlay').classList.remove('show');}
 function saveStatusChange(){
   const newSt = document.getElementById('newStatusSelect').value;
   evt.members[targetIdx].status = newSt;
-  evt.members[targetIdx].paidAt = (newSt === 'paid') ? PC_nowStr() : '';
+  evt.members[targetIdx].paidAt = (newSt==='paid')?PC_nowStr():'';
   saveAndRefresh();
   closeStatusModal();
 }
 
 function confirmDeleteMember(idx){
   targetIdx = idx;
+  document.getElementById('delTargetName').textContent = evt.members[idx].name || evt.members[idx].email;
   document.getElementById('deleteConfirmOverlay').classList.add('show');
 }
-function closeDeleteModal(){ document.getElementById('deleteConfirmOverlay').classList.remove('show'); }
+function closeDeleteModal(){document.getElementById('deleteConfirmOverlay').classList.remove('show');}
 function executeDelete(){
   evt.members.splice(targetIdx, 1);
   saveAndRefresh();
@@ -154,7 +288,7 @@ function saveAndRefresh(){
   const all = PC_getEvents();
   PC_saveEvents(all.map(e => e.id === eventId ? evt : e));
   renderPage();
-  PC_toast('更新成功');
+  PC_toast('✅ 資料已更新');
 }
 
 renderPage();
