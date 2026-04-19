@@ -1,4 +1,6 @@
 // PayClub shared utilities v6
+// KEY CHANGE: No global roles. Roles are per-activity.
+// Account registration is unified - no role at signup.
 
 // ── Auth (sessionStorage = per-tab isolation) ──
 function PC_getUser(){
@@ -10,15 +12,6 @@ function PC_requireLogin(){
   if(!PC_isLoggedIn()){ location.href='login.html?next='+encodeURIComponent(location.href); return null; }
   return PC_getUser();
 }
-
-// 修正：補上原本缺失的驗證函式，確保管理端頁面不當機
-function PC_requireAdmin(){
-  const user = PC_requireLogin();
-  if(!user) return null;
-  // 未來若有全域管理員身分，可在此擴充邏輯
-  return user;
-}
-
 function PC_logout(){
   const u = PC_getUser();
   if(u){
@@ -42,6 +35,8 @@ function PC_saveEvents(e){ localStorage.setItem(PC_eventsKey(PC_getUser()), JSON
 function PC_getEvent(id){ return PC_getEvents().find(e=>e.id===id) || null; }
 
 // ── Per-activity role for current user ──
+// Role stored inside event.members[].role
+// Possible roles: 'admin', 'payer', 'observer', 'counter'
 function PC_getMyRoleInEvent(evt){
   const u = PC_getUser();
   if(!u) return null;
@@ -49,6 +44,7 @@ function PC_getMyRoleInEvent(evt){
   return member ? member.role : null;
 }
 function PC_amIAdminOf(evt){
+  // Check if current user owns this event OR has admin role in it
   const u = PC_getUser();
   if(!u) return false;
   if(evt.ownerEmail === u.email) return true;
