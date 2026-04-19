@@ -320,10 +320,41 @@ function saveAmtModal() {
   PC_toast(`✅ 成功更新 ${changedCount} 位成員的金額`);
 }
   
-function renderSidebar(){
-  const evts=PC_getEvents();
-  document.getElementById('sidebarEvents').innerHTML=evts.map(e=>`<a class="nav-event${e.id===eventId?' current':''}" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('');
+// ── 新版側邊欄下拉選單邏輯 ──
+function toggleSideMenu(id) {
+  document.getElementById(id).classList.toggle('open');
+  document.getElementById(id + '_icon').classList.toggle('open');
 }
+
+function renderSidebar(){
+  const evts = PC_getAllMyEvents();
+  const created = evts.filter(e => e._isOwner);
+  const joined = evts.filter(e => !e._isOwner);
+
+  const curId = (typeof eventId !== 'undefined') ? eventId : null;
+  let html = '';
+
+  // 已建立活動區塊
+  html += `<div class="sidebar-menu-header" onclick="toggleSideMenu('menu_created')">已建立活動 <span class="chevron open" id="menu_created_icon">▼</span></div>`;
+  html += `<div class="sidebar-menu-list open" id="menu_created">`;
+  if(!created.length) html += `<div style="padding:6px 12px; font-size:0.75rem; color:var(--text3)">無資料</div>`;
+  html += created.map(e => `<a class="nav-event${e.id===curId?' current':''}" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('');
+  html += `</div>`;
+
+  // 已加入活動區塊
+  html += `<div class="sidebar-menu-header" onclick="toggleSideMenu('menu_joined')">已加入活動 <span class="chevron open" id="menu_joined_icon">▼</span></div>`;
+  html += `<div class="sidebar-menu-list open" id="menu_joined">`;
+  if(!joined.length) html += `<div style="padding:6px 12px; font-size:0.75rem; color:var(--text3)">無資料</div>`;
+  html += joined.map(e => `<a class="nav-event" href="member.html"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('');
+  html += `</div>`;
+
+  const container = document.getElementById('sidebarEvents');
+  if(container) container.innerHTML = html;
+  if(typeof PC_fillSidebarUser === 'function') PC_fillSidebarUser();
+}
+
+// 執行渲染側邊欄
+renderSidebar();
 
 function copyInviteCode(){
   if(evt&&evt.inviteCode) PC_copyText(evt.inviteCode,'🔑 邀請碼已複製：'+evt.inviteCode);
