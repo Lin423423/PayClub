@@ -227,6 +227,17 @@ const RL={payer:'繳費者',counter:'統計者',admin_member:'管理員',observe
 const RC={payer:'#4f6ef7',counter:'#d97706',admin_member:'#16a34a',observer:'#9ca3af'};
 const RB={payer:'badge-blue',counter:'badge-orange',admin_member:'badge-green',observer:'badge-gray'};
 
+function batchUpdateAmount(){
+  const newAmt = prompt("請輸入所有繳費者的新應繳金額：");
+  if(newAmt === null) return;
+  evt.members.forEach(m => {
+    if((m.role||[]).includes('payer')) m.customAmount = Number(newAmt);
+  });
+  PC_saveEvents(PC_getEvents().map(x => x.id === eventId ? evt : x));
+  PC_sendNotify(m.email, "金額更新", `活動《${evt.title}》應繳金額已更新為 $${newAmt}`);
+  renderPage();
+}
+  
 function renderSidebar(){
   const evts=PC_getEvents();
   document.getElementById('sidebarEvents').innerHTML=evts.map(e=>`<a class="nav-event${e.id===eventId?' current':''}" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('');
@@ -354,25 +365,66 @@ function renderJoinReqs(){
     </div>`;
   }).join('');
 }
-function approveReq(i){
-  const reqs=PC_getJoinRequests(eventId);
-  const req=reqs[i];
-  // Ask admin to choose role for this member
-  const roleChoice=prompt(`為 ${req.name}(${req.email}) 指定在此活動的角色：\n1 = 繳費者（需繳款）\n2 = 觀察者（看總覽）\n3 = 統計者（管帳）\n\n請輸入 1、2 或 3：`,'1');
-  if(!roleChoice)return;
-  const roleMap={'1':'payer','2':'observer','3':'counter'};
-  const chosenRole=roleMap[roleChoice.trim()]||'payer';
-  req.status='approved';
-  req.approvedRole=chosenRole;
-  PC_saveJoinRequests(eventId,reqs);
-  const evts=PC_getEvents();
-  const e=evts.find(x=>x.id===eventId);
-  if(!e.members) e.members=[];
-  if(!e.members.find(m=>m.email===req.email)){
-    e.members.push({email:req.email,name:req.name,role:chosenRole,status:chosenRole==='payer'?'pending':'none',paidAt:'',customAmount:null,txId:'',remark:''});
+  
+let currentReqIndex = -1; 
+function approveReq(i) {
+  currentReqIndex = i;
+  const reqs = PC_getJoinRequests(eventId);
+  const req = reqs[i];
+  
+  document.querySelectorAll('.role-option').forEach(el => el.classList.remove('selected'));
+  document.getElementById('roleModalOverlay').classList.add('show');
+}
+
+function toggleRoleOption(el, role) {
+  el.classList.toggle('selected');
+}
+
+function closeRoleModal() {
+  document.getElementById('roleModalOverlay').classList.remove('show');
+}
+
+function confirmApprove() {
+  const selectedRoles = [];
+  const options = document.querySelectorAll('.role-option.selected');
+  options.forEach(opt => {
+    if(opt.innerText.includes('繳費者')) selectedRoles.push('payer');
+    if(opt.innerText.includes('統計者')) selectedRoles.push('counter');
+    if(opt.innerText.includes('觀察者')) selectedRoles.push('observer');
+  });
+
+  if(selectedRoles.length === 0) {
+    PC_toast('請至少選擇一個角色');
+    return;
+  }
+
+  const reqs = PC_getJoinRequests(eventId);
+  const req = reqs[currentReqIndex];
+  
+  req.status = 'approved';
+  req.approvedRole = selectedRoles; 
+  PC_saveJoinRequests(eventId, reqs);
+
+  const evts = PC_getEvents();
+  const e = evts.find(x => x.id === eventId);
+  if(!e.members) e.members = [];
+  
+  if(!e.members.find(m => m.email === req.email)) {
+    e.members.push({
+      email: req.email,
+      name: req.name,
+      role: selectedRoles,
+      status: selectedRoles.includes('payer') ? 'pending' : 'none',
+      paidAt: '',
+      customAmount: null
+    });
     PC_saveEvents(evts);
   }
-  renderPage();renderJoinReqs();PC_toast('✅ 已同意 '+req.email+' 以「'+(ROLE_LABELS[chosenRole]||chosenRole)+'」身份加入');
+  PC_sendNotify(req.email, "申請已通過", `您已成功加入活動《${e.title}》！身分：${selectedRoles.map(r=>ROLE_LABELS[r]).join('+')}`);
+
+  closeRoleModal();
+  renderPage();
+  PC_toast('✅ 已核准加入');
 }
 function rejectReq(i){
   const reqs=PC_getJoinRequests(eventId);
@@ -402,4 +454,43 @@ function addMember(){
 
 renderPage();
 </script>
+<div class="overlay" id="roleModalOverlay">
+  <div class="modal">
+    <div class="modal-title">指定成員角色</div>
+    <p style="font-size:0.85rem; color:var(--text2); margin-bottom:16px;">
+      您可以為成員勾選多重身分（例如：同時擔任繳費者與管理幹部）。
+    </p>
+    
+    <div id="roleOptions">
+      <div class="role-option" onclick="toggleRoleOption(this, 'payer')">
+        <div class="role-check"></div>
+        <div>
+          <div style="font-weight:600; font-size:0.9rem;">繳費者</div>
+          <div style="font-size:0.75rem; color:var(--text3);">需支付活動費用，會出現在催款名單。</div>
+        </div>
+      </div>
+      
+      <div class="role-option" onclick="toggleRoleOption(this, 'counter')">
+        <div class="role-check"></div>
+        <div>
+          <div style="font-weight:600; font-size:0.9rem;">統計者</div>
+          <div style="font-size:0.75rem; color:var(--text3);">可查看收款明細，協助管帳。</div>
+        </div>
+      </div>
+
+      <div class="role-option" onclick="toggleRoleOption(this, 'observer')">
+        <div class="role-check"></div>
+        <div>
+          <div style="font-weight:600; font-size:0.9rem;">觀察者</div>
+          <div style="font-size:0.75rem; color:var(--text3);">僅可查看活動進度總覽。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeRoleModal()">取消</button>
+      <button class="btn btn-primary" style="flex:2" onclick="confirmApprove()">確認加入</button>
+    </div>
+  </div>
+</div>
 </body></html>
