@@ -12,6 +12,12 @@ function PC_requireLogin(){
   if(!PC_isLoggedIn()){ location.href='login.html?next='+encodeURIComponent(location.href); return null; }
   return PC_getUser();
 }
+function PC_requireAdmin(){
+  const user = PC_requireLogin();
+  if(!user) return null;
+  // 未來若有全域管理員身分，可在此擴充邏輯
+  return user;
+}
 function PC_logout(){
   const u = PC_getUser();
   if(u){
