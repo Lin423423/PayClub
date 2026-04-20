@@ -194,17 +194,15 @@ body{display:flex;}
 <div class="toast" id="toast"></div>
 <script>
 
-// 1. 將 user 定義在全域，確保所有函式(如 submitCreate)都能讀到
-let user = null;
-
 window.onload = () => {
+  // 1. 驗證登入並取得使用者資料 (複製自 dashboard.html 邏輯)
   if (!PC_isLoggedIn()) {
     location.href = 'login.html';
     return;
   }
-  user = PC_getUser();
+  const user = PC_getUser();
 
-  // 2. 渲染左下角使用者資訊 (沿用 Dashboard 邏輯)
+  // 2. 顯示左下角使用者資訊 (直接複製並對應 ID)
   const uName = user.name || user.email || '使用者';
   const nameEl = document.getElementById('userName');
   const emailEl = document.getElementById('userEmail');
@@ -214,9 +212,9 @@ window.onload = () => {
   if (emailEl) emailEl.textContent = user.email || '';
   if (avatarEl) avatarEl.textContent = uName.slice(0, 1).toUpperCase();
 
-  // 3. 初始化頁面組件
+  // 3. 執行側邊欄活動清單與日期初始化
   renderSidebar();
-  initDateSelects(); // 初始化日期下拉選單
+  initDateSelects();
 };
   
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('mobileOverlay').classList.add('show');}
@@ -269,18 +267,24 @@ function initDateSelects(){
     dd.appendChild(o);
   }
 }
-function updateDays(){
-  const y=parseInt(document.getElementById('dlYear').value)||new Date().getFullYear();
-  const m=parseInt(document.getElementById('dlMonth').value)||1;
-  const days=new Date(y,m,0).getDate();
-  const dd=document.getElementById('dlDay');
-  const prev=Math.min(parseInt(dd.value)||1,days);
-  dd.innerHTML='';
-  for(let d=1;d<=days;d++){
-    const o=document.createElement('option');
-    o.value=String(d);o.textContent=d+'日';
-    if(d===prev)o.selected=true;
-    dd.appendChild(o);
+function updateDays() {
+  const yrEl = document.getElementById('dlYear');
+  const mnEl = document.getElementById('dlMonth');
+  const ddEl = document.getElementById('dlDay');
+  if (!yrEl || !mnEl || !ddEl) return;
+
+  const y = parseInt(yrEl.value) || new Date().getFullYear();
+  const m = parseInt(mnEl.value) || 1;
+  const days = new Date(y, m, 0).getDate();
+  
+  const prev = Math.min(parseInt(ddEl.value) || 1, days);
+  ddEl.innerHTML = '';
+  for (let d = 1; d <= days; d++) {
+    const o = document.createElement('option');
+    o.value = String(d);
+    o.textContent = d + '日';
+    if (d === prev) o.selected = true;
+    ddEl.appendChild(o);
   }
 }
 const ROLE_SEL={payer:'sel-payer',counter:'sel-counter',admin:'sel-admin'};
