@@ -197,13 +197,10 @@ body{display:flex;}
 </main>
 <div class="toast" id="toast"></div>
 <script>
-// ── Init ──
-const user = PC_requireLogin();
-if(user){
-  PC_fillSidebarUser();
-  renderSidebar();
-  initDateSelects();
-}
+// ── Init (matches dashboard.html pattern) ──
+const user = PC_requireAdmin(); if(!user) throw new Error('r');
+renderSidebar();
+initDateSelects();
 
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('mobileOverlay').classList.add('show');}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mobileOverlay').classList.remove('show');}
@@ -229,52 +226,29 @@ function renderSidebar(){
 
 // ── Date selects ──
 function initDateSelects(){
-  const yr=document.getElementById('dlYear');
-  const mn=document.getElementById('dlMonth');
-  const dd=document.getElementById('dlDay');
-  if(!yr||!mn||!dd)return;
+  // Exact same approach as event.html
   const def=new Date();def.setDate(def.getDate()+14);
   const defY=def.getFullYear(),defM=def.getMonth()+1,defD=def.getDate();
-  yr.innerHTML='';
   const cy=new Date().getFullYear();
-  for(let y=cy;y<=cy+5;y++){
-    const o=document.createElement('option');
-    o.value=String(y);o.textContent=y+'年';
-    if(y===defY)o.selected=true;
-    yr.appendChild(o);
-  }
-  mn.innerHTML='';
-  for(let m=1;m<=12;m++){
-    const o=document.createElement('option');
-    o.value=String(m);o.textContent=m+'月';
-    if(m===defM)o.selected=true;
-    mn.appendChild(o);
-  }
-  const dim=new Date(defY,defM,0).getDate();
-  dd.innerHTML='';
-  for(let d=1;d<=dim;d++){
-    const o=document.createElement('option');
-    o.value=String(d);o.textContent=d+'日';
-    if(d===defD)o.selected=true;
-    dd.appendChild(o);
-  }
-}
-function updateDays(){
   const yr=document.getElementById('dlYear');
+  yr.innerHTML='';
+  for(let i=cy;i<=cy+5;i++){const o=document.createElement('option');o.value=i;o.textContent=i+'年';yr.appendChild(o);}
+  yr.value=defY;
   const mn=document.getElementById('dlMonth');
-  const dd=document.getElementById('dlDay');
-  if(!yr||!mn||!dd)return;
-  const y=parseInt(yr.value)||new Date().getFullYear();
-  const m=parseInt(mn.value)||1;
+  mn.innerHTML='';
+  for(let i=1;i<=12;i++){const o=document.createElement('option');o.value=i;o.textContent=i+'月';mn.appendChild(o);}
+  mn.value=defM;
+  updateDays(defD);
+}
+function updateDays(sv){
+  const y=parseInt(document.getElementById('dlYear').value)||new Date().getFullYear();
+  const m=parseInt(document.getElementById('dlMonth').value)||1;
   const days=new Date(y,m,0).getDate();
-  const prev=Math.min(parseInt(dd.value)||1,days);
+  const dd=document.getElementById('dlDay');
+  const pv=sv||parseInt(dd.value)||1;
   dd.innerHTML='';
-  for(let d=1;d<=days;d++){
-    const o=document.createElement('option');
-    o.value=String(d);o.textContent=d+'日';
-    if(d===prev)o.selected=true;
-    dd.appendChild(o);
-  }
+  for(let i=1;i<=days;i++){const o=document.createElement('option');o.value=i;o.textContent=i+'日';dd.appendChild(o);}
+  dd.value=Math.min(pv,days);
 }
 
 // ── Step navigation ──
