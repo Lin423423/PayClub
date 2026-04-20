@@ -112,7 +112,8 @@ function PC_logActivity(user, action){
 function PC_fillSidebarUser(){
   const u = PC_getUser(); if(!u) return;
   const n = document.getElementById('userName'), a = document.getElementById('avatarInitial'), r = document.getElementById('userEmail');
-  if(n) n.textContent = u.name; if(a) a.textContent = u.name.slice(0,1); if(r) r.textContent = u.email;
+  const displayName = u.name || u.email || '使用者';
+  if(n) n.textContent = displayName; if(a) a.textContent = displayName.slice(0,1).toUpperCase(); if(r) r.textContent = u.email||'';
   const unread = PC_getUnreadCount();
   const badge = document.getElementById('notifBadge');
   if(badge){ badge.textContent = unread > 0 ? unread : ''; badge.style.display = unread > 0 ? 'inline-block' : 'none'; }
