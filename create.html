@@ -108,11 +108,7 @@ body{display:flex;}
       </div>
       <div class="form-group">
         <label class="form-label">截止日期 *</label>
-        <div class="date-row">
-          <select id="dlYear" class="form-input" onchange="updateDays()"></select>
-          <select id="dlMonth" class="form-input" onchange="updateDays()"></select>
-          <select id="dlDay" class="form-input"></select>
-        </div>
+        <input type="date" id="s1Deadline" class="form-input" required>
       </div>
       <div class="form-group">
         <label class="form-label">活動說明（選填）</label>
@@ -193,8 +189,18 @@ body{display:flex;}
 </main>
 <div class="toast" id="toast"></div>
 <script>
-const user=PC_requireLogin();if(!user)throw new Error('r');
-PC_fillSidebarUser();
+const user = PC_requireLogin();
+if (!user) throw new Error('r');
+
+// 強制手動填寫左下角資訊，確保顯示
+const displayName = user.name || user.email || '使用者';
+if (document.getElementById('userName')) document.getElementById('userName').textContent = displayName;
+if (document.getElementById('userEmail')) document.getElementById('userEmail').textContent = user.email || '';
+if (document.getElementById('avatarInitial')) document.getElementById('avatarInitial').textContent = displayName.slice(0, 1).toUpperCase();
+
+// 原有的渲染邏輯
+renderSidebar();
+initDateSelects();
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('mobileOverlay').classList.add('show');}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mobileOverlay').classList.remove('show');}
 function toggleSideMenu(id){document.getElementById(id).classList.toggle('open');document.getElementById(id+'_icon').classList.toggle('open');}
