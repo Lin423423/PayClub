@@ -37,7 +37,7 @@ body{background:var(--bg);min-height:100vh;}
 .date-display-text{font-size:0.92rem;font-weight:600;color:var(--text);}
 .date-display-text.placeholder{color:var(--text3);font-weight:400;}
 .calendar-icon{color:var(--text3);font-size:1rem;}
-.calendar-popup{position:absolute;top:calc(100% + 6px);left:0;z-index:100;background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.12);padding:16px;min-width:280px;display:none;}
+.calendar-popup{position:absolute;top:calc(100% + 6px);left:0;z-index:1000;background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.12);padding:16px;min-width:280px;display:none;}
 .calendar-popup.show{display:block;}
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
 .cal-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.95rem;font-weight:700;color:var(--text);}
@@ -124,9 +124,9 @@ body{background:var(--bg);min-height:100vh;}
           </div>
           <div class="calendar-popup" id="calendarPopup">
             <div class="cal-header">
-              <button class="cal-nav" onclick="calNav(-1)">‹</button>
+              <button class="cal-nav" onclick="calNav(-1, event)">‹</button>
               <div class="cal-title" id="calTitle"></div>
-              <button class="cal-nav" onclick="calNav(1)">›</button>
+              <button class="cal-nav" onclick="calNav(1, event)">›</button>
             </div>
             <div class="cal-grid" id="calGrid"></div>
           </div>
@@ -224,38 +224,37 @@ function initCalendar() {
   const def = new Date(); def.setDate(def.getDate() + 14);
   calYear = def.getFullYear(); calMonth = def.getMonth();
   renderCalendar();
+  
+  // 在捕獲階段監聽全域點擊，確保能正確關閉日曆
+  document.addEventListener('click', function(e) {
+    const popup = document.getElementById('calendarPopup');
+    const disp = document.getElementById('dateDisplay');
+    
+    if (!popup || !disp) return;
+    
+    // 如果日曆已打開，且點擊在外部
+    if (popup.classList.contains('show')) {
+      if (!popup.contains(e.target) && !disp.contains(e.target)) {
+        popup.classList.remove('show');
+        disp.classList.remove('open');
+      }
+    }
+  }, true); // true 表示在捕獲階段處理
 }
 function toggleCalendar(e) {
-  e.stopPropagation(); 
+  if (e) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
 
   const popup = document.getElementById('calendarPopup');
   const disp = document.getElementById('dateDisplay');
 
   popup.classList.toggle('show');
   disp.classList.toggle('open');
-
-  if (popup.classList.contains('show')) {
-    // 延遲註冊事件監聽器，避免當前點擊被立即處理
-    setTimeout(() => {
-      document.addEventListener('click', closeCal);
-    }, 0);
-  } else {
-    document.removeEventListener('click', closeCal);
-  }
 }
-function closeCal(e) {
-  const popup = document.getElementById('calendarPopup');
-  const disp = document.getElementById('dateDisplay');
-  
-  // 檢查點擊是否在日曆彈窗或觸發按鈕內部
-  if (!popup.contains(e.target) && !disp.contains(e.target)) {
-    popup.classList.remove('show');
-    disp.classList.remove('open');
-    document.removeEventListener('click', closeCal);
-  }
-}
-function calNav(dir) {
-  event.stopPropagation(); // 防止事件冒泡導致日曆關閉
+function calNav(dir, e) {
+  if (e) e.stopPropagation(); // 防止事件冒泡導致日曆關閉
   calMonth += dir;
   if (calMonth > 11) { calMonth = 0; calYear++; }
   if (calMonth < 0) { calMonth = 11; calYear--; }
@@ -295,7 +294,6 @@ function selectDate(y, m, d) {
   // Close popup
   document.getElementById('calendarPopup').classList.remove('show');
   document.getElementById('dateDisplay').classList.remove('open');
-  document.removeEventListener('click', closeCal);
 }
 function getSelectedDateStr() {
   if (!selectedDate) return null;
