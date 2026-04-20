@@ -94,6 +94,10 @@ body{background:var(--bg);min-height:100vh;}
 <nav class="top-nav">
   <button class="nav-back" onclick="location.href='dashboard.html'">← 回總覽</button>
   <div class="nav-logo"><div style="width:7px;height:7px;background:var(--accent);border-radius:50%;display:inline-block;margin-right:2px"></div>PayClub</div>
+  <div class="nav-right">
+    <div class="nav-avatar" id="navAvatar">A</div>
+    <div id="navName"></div>
+  </div>  
 </nav>
 
 <div class="steps-wrap">
@@ -215,6 +219,10 @@ body{background:var(--bg);min-height:100vh;}
 
 <div class="toast" id="toast"></div>
 <script>
+const user=PC_requireLogin();if(!user)throw new Error('r');
+document.getElementById('navAvatar').textContent=user.name.slice(0,1);
+document.getElementById('navName').textContent=user.name;
+  
 // ── Calendar ──
 let calYear, calMonth, selectedDate = null;
 
