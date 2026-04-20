@@ -235,18 +235,27 @@ function toggleCalendar(e) {
   disp.classList.toggle('open');
 
   if (popup.classList.contains('show')) {
-    document.addEventListener('click', closeCal);
+    // 延遲註冊事件監聽器，避免當前點擊被立即處理
+    setTimeout(() => {
+      document.addEventListener('click', closeCal);
+    }, 0);
+  } else {
+    document.removeEventListener('click', closeCal);
   }
 }
 function closeCal(e) {
-  const wrap = document.querySelector('.date-picker-wrap');
-  if (!wrap.contains(e.target)) {
-    document.getElementById('calendarPopup').classList.remove('show');
-    document.getElementById('dateDisplay').classList.remove('open');
+  const popup = document.getElementById('calendarPopup');
+  const disp = document.getElementById('dateDisplay');
+  
+  // 檢查點擊是否在日曆彈窗或觸發按鈕內部
+  if (!popup.contains(e.target) && !disp.contains(e.target)) {
+    popup.classList.remove('show');
+    disp.classList.remove('open');
     document.removeEventListener('click', closeCal);
   }
 }
 function calNav(dir) {
+  event.stopPropagation(); // 防止事件冒泡導致日曆關閉
   calMonth += dir;
   if (calMonth > 11) { calMonth = 0; calYear++; }
   if (calMonth < 0) { calMonth = 11; calYear--; }
