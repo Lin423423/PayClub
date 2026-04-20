@@ -7,7 +7,8 @@
 <link rel="stylesheet" href="shared.css"><script src="pc_auth.js"></script>
 <style>
 body{display:flex;}
-.steps-outer{max-width:620px;margin-bottom:28px;} /* 與進度條一致 */
+/* 1. 關鍵修改：將表格寬度與上方進度條 (620px) 設為一致 */
+.steps-outer{max-width:620px;margin-bottom:28px;}
 .steps{display:flex;align-items:center;width:100%;}
 .step-item{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .step-circle{width:30px;height:30px;border-radius:50%;border:2px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:var(--text3);transition:all 0.25s;flex-shrink:0;}
@@ -18,15 +19,16 @@ body{display:flex;}
 .step-item.done .step-label{color:var(--green);}
 .step-line{flex:1;height:2px;background:var(--border);margin:0 10px;}
 .step-line.done{background:var(--green);}
-/* 修正寬度與進度條一致 */
+/* 確保卡片與按鈕列寬度均為 620px */
 .form-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:26px;margin-bottom:16px;box-shadow:var(--shadow);max-width:620px;}
-.form-card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:1rem;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
 .btn-row{max-width:620px;display:flex;gap:10px;}
+
+/* 恢復原始格式 */
+.form-card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:1rem;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
 .date-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
 .chip{padding:6px 14px;border-radius:100px;font-size:0.8rem;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--text2);transition:all 0.15s;user-select:none;font-family:'Noto Sans TC',sans-serif;}
 .chip.selected{border-color:var(--accent);background:var(--accent-light);color:var(--accent);}
-/* 恢復原始人員設定排版 */
 .member-add-row{display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:12px;align-items:start;}
 .member-list{display:flex;flex-direction:column;gap:6px;}
 .member-tag{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;gap:8px;}
@@ -50,7 +52,6 @@ body{display:flex;}
 .prev-table td{padding:8px 12px;border-bottom:1px solid var(--border);}
 .prev-table tr:last-child td{border-bottom:none;}
 .success-box{max-width:620px;background:var(--green-light);border:1px solid #bbf7d0;border-radius:var(--radius);padding:32px;text-align:center;}
-/* 恢復點選複製邀請碼樣式 */
 .invite-display{background:var(--white);border:2px dashed var(--accent);border-radius:12px;padding:16px 20px;margin:14px 0;cursor:pointer;transition:all 0.15s;}
 .invite-display:hover{background:var(--accent-light);}
 .invite-code-big{font-family:'Plus Jakarta Sans',sans-serif;font-size:2.2rem;font-weight:800;letter-spacing:0.18em;color:var(--accent);}
@@ -81,7 +82,10 @@ body{display:flex;}
   <div class="sidebar-bottom">
     <div class="user-card">
       <div class="avatar" id="avatarInitial">?</div>
-      <div class="user-info"><div class="user-name" id="userName">載入中</div><div class="user-role" id="userEmail" style="font-size:0.6rem;opacity:0.8">...</div></div>
+      <div class="user-info">
+        <div class="user-name" id="userName">載入中</div>
+        <div class="user-role" id="userEmail" style="font-size:0.6rem; opacity:0.8">...</div>
+      </div>
       <button class="logout-btn" onclick="PC_logout()">登出</button>
     </div>
   </div>
@@ -121,6 +125,15 @@ body{display:flex;}
         <label class="form-label">活動說明（選填）</label>
         <textarea id="s1Desc" class="form-input" rows="2" placeholder="成員繳費時會看到這段說明..."></textarea>
       </div>
+      <div class="form-group">
+        <label class="form-label">自動催款提醒</label>
+        <div class="chips">
+          <div class="chip selected" onclick="this.classList.toggle('selected')">截止前 7 天</div>
+          <div class="chip selected" onclick="this.classList.toggle('selected')">截止前 3 天</div>
+          <div class="chip selected" onclick="this.classList.toggle('selected')">截止前 1 天</div>
+          <div class="chip" onclick="this.classList.toggle('selected')">截止當天</div>
+        </div>
+      </div>
     </div>
     <div class="btn-row"><button class="btn btn-primary" style="flex:1;justify-content:center" onclick="goStep2()">下一步：設定成員 →</button></div>
   </div>
@@ -128,7 +141,7 @@ body{display:flex;}
   <div id="s2" style="display:none">
     <div class="form-card">
       <div class="form-card-title">👥 預先邀請成員（選填）</div>
-      <div class="info-note">💡 預先邀請的成員會收到通知確認是否加入。</div>
+      <div class="info-note">💡 預先邀請的成員會收到通知確認是否加入。確認前狀態為「未加入」。繳費者也可透過邀請碼自行申請。</div>
       <div class="member-add-row">
         <div>
           <input type="email" id="addEmail" class="form-input" placeholder="member@email.com" onkeydown="if(event.key==='Enter')addMember()" style="margin-bottom:8px">
@@ -168,6 +181,7 @@ body{display:flex;}
     <div class="success-box">
       <div style="font-size:2.2rem;margin-bottom:10px">🎉</div>
       <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.3rem;font-weight:800;margin-bottom:6px;color:var(--green)">活動建立成功！</div>
+      <div style="font-size:0.88rem;color:var(--text2);margin-bottom:4px">已通知預先邀請的成員確認加入</div>
       <div class="invite-display" onclick="copyInviteCode()">
         <div class="invite-code-big" id="inviteCodeDisp">——</div>
         <div style="font-size:0.75rem;color:var(--text2);margin-top:5px">📋 點擊複製邀請碼</div>
@@ -186,13 +200,15 @@ body{display:flex;}
 </main>
 
 <script>
-// 初始化同步 Dashboard 側邊欄邏輯
+// 初始化同步 Dashboard 側邊欄邏輯，不更動原始變數 Scope
 const user = PC_requireLogin();
 if (user) {
+  // 渲染使用者資訊 (頭像同步 Dashboard)
   const uName = user.name || user.email || '使用者';
-  document.getElementById('userName').textContent = uName;
-  document.getElementById('userEmail').textContent = user.email || '';
-  document.getElementById('avatarInitial').textContent = uName.slice(0, 1).toUpperCase();
+  if(document.getElementById('userName')) document.getElementById('userName').textContent = uName;
+  if(document.getElementById('userEmail')) document.getElementById('userEmail').textContent = user.email || '';
+  if(document.getElementById('avatarInitial')) document.getElementById('avatarInitial').textContent = uName.slice(0, 1).toUpperCase();
+
   renderSidebar();
   initDateSelects();
 }
@@ -203,85 +219,112 @@ function toggleSideMenu(id){document.getElementById(id).classList.toggle('open')
 
 function renderSidebar(){
   const evts = PC_getAllMyEvents();
-  const created = evts.filter(e => e._isOwner), joined = evts.filter(e => !e._isOwner);
+  const created = evts.filter(e => e._isOwner);
+  const joined = evts.filter(e => !e._isOwner);
   let html = '';
-  html += `<div class="sidebar-menu-header" onclick="toggleSideMenu('mc')">已建立 <span class="chevron open" id="mc_icon">▼</span></div><div class="sidebar-menu-list open" id="mc">`;
-  html += created.length ? created.map(e => `<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('') : `<div style="padding:4px 12px;font-size:0.74rem;color:var(--text3)">無</div>`;
-  html += '</div>';
-  html += `<div class="sidebar-menu-header" onclick="toggleSideMenu('mj')">已加入 <span class="chevron open" id="mj_icon">▼</span></div><div class="sidebar-menu-list open" id="mj">`;
-  html += joined.length ? joined.map(e => `<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('') : `<div style="padding:4px 12px;font-size:0.74rem;color:var(--text3)">無</div>`;
-  html += '</div>';
-  const c = document.getElementById('sidebarEvents'); if(c) c.innerHTML = html;
-  PC_fillSidebarUser();
+  // 同步 Dashboard 下拉選單格式
+  html += `<div class="sidebar-menu-header" onclick="toggleSideMenu('menu_created')">已建立活動 <span class="chevron open" id="menu_created_icon">▼</span></div>`;
+  html += `<div class="sidebar-menu-list open" id="menu_created">`;
+  if(!created.length) html += `<div style="padding:6px 12px;font-size:0.75rem;color:var(--text3)">無資料</div>`;
+  html += created.map(e => `<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('');
+  html += `</div>`;
+  html += `<div class="sidebar-menu-header" onclick="toggleSideMenu('menu_joined')">已加入活動 <span class="chevron open" id="menu_joined_icon">▼</span></div>`;
+  html += `<div class="sidebar-menu-list open" id="menu_joined">`;
+  if(!joined.length) html += `<div style="padding:6px 12px;font-size:0.75rem;color:var(--text3)">無資料</div>`;
+  html += joined.map(e => `<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('');
+  html += `</div>`;
+  const c = document.getElementById('sidebarEvents');
+  if(c) c.innerHTML = html;
 }
 
 function initDateSelects(){
-  const yr=document.getElementById('dlYear'), mn=document.getElementById('dlMonth'), dd=document.getElementById('dlDay');
-  if(!yr||!mn||!dd) return;
+  const yr=document.getElementById('dlYear'); const mn=document.getElementById('dlMonth'); const dd=document.getElementById('dlDay');
+  if(!yr||!mn||!dd)return;
   const def=new Date(); def.setDate(def.getDate()+14);
   const defY=def.getFullYear(), defM=def.getMonth()+1, defD=def.getDate();
-  yr.innerHTML=''; mn.innerHTML='';
-  for(let y=defY-1; y<=defY+5; y++) { let o=new Option(y+'年',y); if(y===defY) o.selected=true; yr.add(o); }
-  for(let m=1; m<=12; m++) { let o=new Option(m+'月',m); if(m===defM) o.selected=true; mn.add(o); }
+  yr.innerHTML='';
+  const cy=new Date().getFullYear();
+  for(let y=cy; y<=cy+5; y++){
+    const o=document.createElement('option'); o.value=String(y); o.textContent=y+'年';
+    if(y===defY)o.selected=true; yr.appendChild(o);
+  }
+  mn.innerHTML='';
+  for(let m=1; m<=12; m++){
+    const o=document.createElement('option'); o.value=String(m); o.textContent=m+'月';
+    if(m===defM)o.selected=true; mn.appendChild(o);
+  }
   updateDays();
 }
 
 function updateDays() {
-  const yrEl = document.getElementById('dlYear'), mnEl = document.getElementById('dlMonth'), ddEl = document.getElementById('dlDay');
+  const yrEl = document.getElementById('dlYear'); const mnEl = document.getElementById('dlMonth'); const ddEl = document.getElementById('dlDay');
   if (!yrEl || !mnEl || !ddEl) return;
-  const y = parseInt(yrEl.value), m = parseInt(mnEl.value), days = new Date(y, m, 0).getDate();
-  const prev = ddEl.value; ddEl.innerHTML = '';
-  for (let d = 1; d <= days; d++) { let o = new Option(d+'日', d); if(d==prev) o.selected=true; ddEl.add(o); }
+  const y = parseInt(yrEl.value) || new Date().getFullYear();
+  const m = parseInt(mnEl.value) || 1;
+  const days = new Date(y, m, 0).getDate();
+  const prev = Math.min(parseInt(ddEl.value) || 1, days);
+  ddEl.innerHTML = '';
+  for (let d = 1; d <= days; d++) {
+    const o = document.createElement('option'); o.value = String(d); o.textContent = d + '日';
+    if (d === prev) o.selected = true; ddEl.appendChild(o);
+  }
 }
 
 const ROLE_SEL={payer:'sel-payer',counter:'sel-counter',admin:'sel-admin'};
 const ROLE_LABELS={payer:'繳費者',counter:'統計者',admin:'管理員'};
 const ROLE_BADGE={payer:'badge-blue',counter:'badge-orange',admin:'badge-green'};
-function toggleRoleChip(el){ el.classList.toggle(ROLE_SEL[el.dataset.role]); }
-function getSelectedRoles(){ return Array.from(document.querySelectorAll('#roleChipsInput .role-chip')).filter(el=>Object.values(ROLE_SEL).some(c=>el.classList.contains(c))).map(el=>el.dataset.role); }
+function toggleRoleChip(el){const cls=ROLE_SEL[el.dataset.role]; if(cls)el.classList.toggle(cls);}
+function getSelectedRoles(){return Array.from(document.querySelectorAll('#roleChipsInput .role-chip')).filter(el=>Object.values(ROLE_SEL).some(c=>el.classList.contains(c))).map(el=>el.dataset.role);}
 
 let members=[];
 function addMember(){
-  const email=document.getElementById('addEmail').value.trim(), roles=getSelectedRoles();
-  if(!email||!email.includes('@')){ PC_toast('請輸入有效 Email'); return; }
-  if(!roles.length){ PC_toast('請至少選擇一個角色'); return; }
-  if(members.find(m=>m.email===email)){ PC_toast('此 Email 已新增'); return; }
-  members.push({email, name:email.split('@')[0], roles});
+  const email=document.getElementById('addEmail').value.trim(); const roles=getSelectedRoles();
+  if(!email||!email.includes('@')){PC_toast('請輸入有效 Email'); return;}
+  if(!roles.length){PC_toast('請至少選擇一個角色'); return;}
+  if(members.find(m=>m.email===email)){PC_toast('此 Email 已新增'); return;}
+  members.push({email, name:email.split('@')[0], roles, role:roles[0]});
   document.getElementById('addEmail').value='';
-  document.querySelectorAll('#roleChipsInput .role-chip').forEach(el=>Object.values(ROLE_SEL).forEach(c=>el.classList.remove(c)));
+  document.querySelectorAll('#roleChipsInput .role-chip').forEach(el=>{Object.values(ROLE_SEL).forEach(c=>el.classList.remove(c));});
   renderMemberList();
 }
 
+function removeMember(i){members.splice(i,1); renderMemberList();}
 function renderMemberList(){
   const list=document.getElementById('memberList');
-  if(!members.length){ list.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);font-size:0.84rem">尚未預先邀請成員</div>'; return; }
-  list.innerHTML=members.map((m,i)=>`<div class="member-tag"><div class="member-tag-left"><div class="m-av-sm">${m.email.slice(0,1).toUpperCase()}</div><div class="m-email-text">${m.email}</div>${m.roles.map(r=>`<span class="badge ${ROLE_BADGE[r]}" style="font-size:0.68rem">${ROLE_LABELS[r]}</span>`).join('')}</div><button class="m-remove" onclick="members.splice(${i},1);renderMemberList()">✕</button></div>`).join('');
+  if(!members.length){list.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);font-size:0.84rem">尚未預先邀請成員</div>';return;}
+  list.innerHTML=members.map((m,i)=>`<div class="member-tag"><div class="member-tag-left"><div class="m-av-sm">${m.email.slice(0,1).toUpperCase()}</div><div class="m-email-text">${m.email}</div>${m.roles.map(r=>`<span class="badge ${ROLE_BADGE[r]}" style="font-size:0.68rem">${ROLE_LABELS[r]}</span>`).join('')}<span class="badge badge-orange" style="font-size:0.68rem">未加入</span></div><button class="m-remove" onclick="removeMember(${i})">✕</button></div>`).join('');
 }
 
 function goStep(n){
-  [1,2,3].forEach(i=>{ document.getElementById('s'+i).style.display=i===n?'block':'none'; document.getElementById('si'+i).className='step-item'+(i<n?' done':i===n?' active':''); if(i<3) document.getElementById('sl'+i).className='step-line'+(i<n?' done':''); });
+  [1,2,3].forEach(i=>{document.getElementById('s'+i).style.display=i===n?'block':'none'; document.getElementById('si'+i).className='step-item'+(i<n?' done':i===n?' active':''); if(i<3)document.getElementById('sl'+i).className='step-line'+(i<n?' done':'');});
 }
-
-function goStep2(){ if(!document.getElementById('s1Title').value.trim()){ PC_toast('請填寫活動名稱'); return; } goStep(2); }
+function goStep2(){const title=document.getElementById('s1Title').value.trim(); if(!title){PC_toast('請填寫活動名稱'); return;} goStep(2);}
 function goStep3(){
-  const dl = `${document.getElementById('dlYear').value}-${document.getElementById('dlMonth').value.padStart(2,'0')}-${document.getElementById('dlDay').value.padStart(2,'0')}`;
-  document.getElementById('previewInfo').innerHTML=`<div class="prev-box"><div class="prev-label">活動名稱</div><div class="prev-val">${document.getElementById('s1Title').value}</div></div><div class="prev-box"><div class="prev-label">截止日期</div><div class="prev-val">${dl}</div></div>`;
-  document.getElementById('previewMembers').innerHTML=members.map(m=>`<tr><td>${m.email}</td><td>${m.roles.map(r=>ROLE_LABELS[r]).join('、')}</td></tr>`).join('') || '<tr><td colspan="2" style="text-align:center">無</td></tr>';
+  const y=document.getElementById('dlYear').value, mo=document.getElementById('dlMonth').value.padStart(2,'0'), d=document.getElementById('dlDay').value.padStart(2,'0');
+  const dl=`${y}-${mo}-${d}`;
+  document.getElementById('previewInfo').innerHTML=`<div class="prev-box"><div class="prev-label">活動名稱</div><div class="prev-val">${document.getElementById('s1Title').value}</div></div><div class="prev-box"><div class="prev-label">截止日期</div><div class="prev-val">${dl}</div></div><div class="prev-box"><div class="prev-label">預先邀請</div><div class="prev-val">${members.length} 人</div></div><div class="prev-box"><div class="prev-label">收款金額</div><div class="prev-val" style="color:var(--accent)">建立後在活動頁設定</div></div>`;
+  document.getElementById('previewMembers').innerHTML=members.length?members.map(m=>`<tr><td>${m.email}</td><td>${m.roles.map(r=>`<span class="badge ${ROLE_BADGE[r]}" style="font-size:0.7rem;margin-right:3px">${ROLE_LABELS[r]}</span>`).join('')}</td></tr>`).join(''):'<tr><td colspan="2" style="color:var(--text3);text-align:center">無</td></tr>';
   goStep(3);
 }
 
 let createdId=null, createdCode='';
 function submitCreate(){
-  const title=document.getElementById('s1Title').value.trim(), dl=`${document.getElementById('dlYear').value}-${document.getElementById('dlMonth').value.padStart(2,'0')}-${document.getElementById('dlDay').value.padStart(2,'0')}`;
-  createdCode=PC_genInviteCode(); createdId='e'+Date.now();
-  const newEvt={id:createdId,title,ownerEmail:user.email,amountMode:'per_person',amount:0,deadline:dl,desc:document.getElementById('s1Desc').value.trim(),status:'active',inviteCode:createdCode,members:members.map(m=>({...m, status:'pending_invite'}))};
+  const title=document.getElementById('s1Title').value.trim();
+  const y=document.getElementById('dlYear').value, mo=document.getElementById('dlMonth').value.padStart(2,'0'), d=document.getElementById('dlDay').value.padStart(2,'0');
+  const dl=`${y}-${mo}-${d}`; const desc=document.getElementById('s1Desc').value.trim();
+  const code=PC_genInviteCode(); createdId='e'+Date.now(); createdCode=code;
+  const memberList=members.map(m=>({email:m.email, name:m.name, roles:m.roles, role:m.roles[0], status:'pending_invite', paidAt:'', customAmount:null, txId:'', remark:'', payMethod:'', txHistory:[]}));
+  const newEvt={id:createdId, title, ownerEmail:user.email, amountMode:'per_person', amount:0, deadline:dl, desc, status:'active', inviteCode:code, members:memberList};
   const evts=PC_getEvents(); evts.unshift(newEvt); PC_saveEvents(evts);
-  document.getElementById('inviteCodeDisp').textContent=createdCode;
+  memberList.forEach(m=>{PC_sendNotify(m.email,'活動邀請確認 🎫',`「${title}」管理員邀請你加入。`,'invite');});
+  document.getElementById('inviteCodeDisp').textContent=code;
   document.getElementById('generatedLink').textContent=location.href.replace('create.html','pay.html')+'?event='+createdId;
-  document.getElementById('s3').style.display='none'; document.getElementById('sSuccess').style.display='block'; renderSidebar();
+  [1,2,3].forEach(i=>document.getElementById('s'+i).style.display='none');
+  document.getElementById('sSuccess').style.display='block'; renderSidebar();
 }
-function copyInviteCode(){ PC_copyText(createdCode,'🔑 邀請碼已複製：'+createdCode); }
-function copyLink(){ PC_copyText(document.getElementById('generatedLink').textContent,'🔗 連結已複製'); }
-function goToEvent(){ location.href='event.html?id='+createdId; }
+
+function copyInviteCode(){PC_copyText(createdCode,'🔑 邀請碼已複製：'+createdCode);}
+function copyLink(){PC_copyText(document.getElementById('generatedLink').textContent,'🔗 連結已複製');}
+function goToEvent(){location.href='event.html?id='+createdId;}
 </script>
 </body></html>
