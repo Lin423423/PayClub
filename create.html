@@ -40,6 +40,11 @@ body{background:var(--bg);min-height:100vh;}
 .calendar-popup{position:absolute;top:calc(100% + 6px);left:0;z-index:10000;background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.12);padding:16px;min-width:280px;display:none;}
 .calendar-popup.show{display:block;}
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.cal-title-wrap{display:flex;align-items:center;gap:6px;}
+.cal-year-select{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.9rem;font-weight:700;color:var(--text);cursor:pointer;outline:none;transition:all 0.15s;}
+.cal-year-select:hover{border-color:var(--accent);background:var(--accent-light);}
+.cal-year-select:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light);}
+#calMonthText{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.95rem;font-weight:700;color:var(--text);}
 .cal-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.95rem;font-weight:700;color:var(--text);}
 .cal-nav{background:none;border:none;cursor:pointer;color:var(--text2);font-size:1.1rem;padding:4px 8px;border-radius:6px;transition:all 0.15s;}
 .cal-nav:hover{background:var(--surface);color:var(--text);}
@@ -125,7 +130,10 @@ body{background:var(--bg);min-height:100vh;}
           <div class="calendar-popup" id="calendarPopup">
             <div class="cal-header">
               <button class="cal-nav">‹</button>
-              <div class="cal-title" id="calTitle"></div>
+              <div class="cal-title-wrap">
+                <select class="cal-year-select" id="calYearSelect"></select>
+                <span id="calMonthText"></span>
+              </div>
               <button class="cal-nav">›</button>
             </div>
             <div class="cal-grid" id="calGrid"></div>
@@ -268,6 +276,19 @@ function initCalendar() {
     });
   }
   
+  // 年份選擇器
+  const yearSelect = document.getElementById('calYearSelect');
+  if (yearSelect) {
+    // 填充年份選項
+    populateYearSelect();
+    
+    yearSelect.addEventListener('change', function(e) {
+      e.stopPropagation();
+      calYear = parseInt(this.value);
+      renderCalendar();
+    });
+  }
+  
   // 全域點擊監聽（關閉日曆）
   document.addEventListener('click', function(e) {
     if (calendarPopup.classList.contains('show')) {
@@ -277,6 +298,21 @@ function initCalendar() {
       }
     }
   });
+}
+
+function populateYearSelect() {
+  const yearSelect = document.getElementById('calYearSelect');
+  if (!yearSelect) return;
+  
+  const currentYear = new Date().getFullYear();
+  const startYear = currentYear;
+  const endYear = currentYear + 10; // 未來10年
+  
+  let html = '';
+  for (let y = startYear; y <= endYear; y++) {
+    html += `<option value="${y}" ${y === calYear ? 'selected' : ''}>${y}</option>`;
+  }
+  yearSelect.innerHTML = html;
 }
 
 function toggleCalendar() {
@@ -295,7 +331,19 @@ function calNav(dir) {
 
 function renderCalendar() {
   const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
-  document.getElementById('calTitle').textContent = calYear + ' ' + months[calMonth];
+  
+  // 更新月份顯示
+  const monthText = document.getElementById('calMonthText');
+  if (monthText) {
+    monthText.textContent = months[calMonth];
+  }
+  
+  // 同步年份選擇器
+  const yearSelect = document.getElementById('calYearSelect');
+  if (yearSelect) {
+    yearSelect.value = calYear;
+  }
+  
   const grid = document.getElementById('calGrid');
   const days = ['日','一','二','三','四','五','六'];
   let html = days.map(d => `<div class="cal-day-label">${d}</div>`).join('');
