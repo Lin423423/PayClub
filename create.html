@@ -37,7 +37,7 @@ body{background:var(--bg);min-height:100vh;}
 .date-display-text{font-size:0.92rem;font-weight:600;color:var(--text);}
 .date-display-text.placeholder{color:var(--text3);font-weight:400;}
 .calendar-icon{color:var(--text3);font-size:1rem;}
-.calendar-popup{position:absolute;top:calc(100% + 6px);left:0;z-index:1000;background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.12);padding:16px;min-width:280px;display:none;}
+.calendar-popup{position:absolute;top:calc(100% + 6px);left:0;z-index:10000;background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.12);padding:16px;min-width:280px;display:none;}
 .calendar-popup.show{display:block;}
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
 .cal-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.95rem;font-weight:700;color:var(--text);}
@@ -118,15 +118,15 @@ body{background:var(--bg);min-height:100vh;}
       <div class="form-group">
         <label class="form-label">截止日期 *</label>
         <div class="date-picker-wrap">
-          <div class="date-display" id="dateDisplay" onclick="toggleCalendar(event)">
+          <div class="date-display" id="dateDisplay">
             <span class="date-display-text placeholder" id="dateDisplayText">請選擇截止日期</span>
             <span class="calendar-icon">📅</span>
           </div>
           <div class="calendar-popup" id="calendarPopup">
             <div class="cal-header">
-              <button class="cal-nav" onclick="calNav(-1, event)">‹</button>
+              <button class="cal-nav">‹</button>
               <div class="cal-title" id="calTitle"></div>
-              <button class="cal-nav" onclick="calNav(1, event)">›</button>
+              <button class="cal-nav">›</button>
             </div>
             <div class="cal-grid" id="calGrid"></div>
           </div>
@@ -225,41 +225,74 @@ function initCalendar() {
   calYear = def.getFullYear(); calMonth = def.getMonth();
   renderCalendar();
   
-  // 在捕獲階段監聽全域點擊，確保能正確關閉日曆
-  document.addEventListener('click', function(e) {
-    const popup = document.getElementById('calendarPopup');
-    const disp = document.getElementById('dateDisplay');
-    
-    if (!popup || !disp) return;
-    
-    // 如果日曆已打開，且點擊在外部
-    if (popup.classList.contains('show')) {
-      if (!popup.contains(e.target) && !disp.contains(e.target)) {
-        popup.classList.remove('show');
-        disp.classList.remove('open');
-      }
-    }
-  }, true); // true 表示在捕獲階段處理
-}
-function toggleCalendar(e) {
-  if (e) {
+  // 使用事件委派綁定所有日曆事件
+  const dateDisplay = document.getElementById('dateDisplay');
+  const calendarPopup = document.getElementById('calendarPopup');
+  const calGrid = document.getElementById('calGrid');
+  
+  // 點擊觸發按鈕
+  dateDisplay.addEventListener('click', function(e) {
     e.stopPropagation();
     e.preventDefault();
+    toggleCalendar();
+  });
+  
+  // 點擊日曆內的日期（事件委派）
+  calGrid.addEventListener('click', function(e) {
+    const dayEl = e.target.closest('.cal-day');
+    if (dayEl && !dayEl.classList.contains('disabled') && !dayEl.classList.contains('empty')) {
+      const y = parseInt(dayEl.dataset.year);
+      const m = parseInt(dayEl.dataset.month);
+      const d = parseInt(dayEl.dataset.day);
+      if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+        selectDate(y, m, d);
+      }
+    }
+  });
+  
+  // 月份導航按鈕
+  const prevBtn = calendarPopup.querySelector('.cal-nav:first-child');
+  const nextBtn = calendarPopup.querySelector('.cal-nav:last-child');
+  
+  if (prevBtn) {
+    prevBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      calNav(-1);
+    });
   }
+  
+  if (nextBtn) {
+    nextBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      calNav(1);
+    });
+  }
+  
+  // 全域點擊監聽（關閉日曆）
+  document.addEventListener('click', function(e) {
+    if (calendarPopup.classList.contains('show')) {
+      if (!calendarPopup.contains(e.target) && !dateDisplay.contains(e.target)) {
+        calendarPopup.classList.remove('show');
+        dateDisplay.classList.remove('open');
+      }
+    }
+  });
+}
 
+function toggleCalendar() {
   const popup = document.getElementById('calendarPopup');
   const disp = document.getElementById('dateDisplay');
-
   popup.classList.toggle('show');
   disp.classList.toggle('open');
 }
-function calNav(dir, e) {
-  if (e) e.stopPropagation(); // 防止事件冒泡導致日曆關閉
+
+function calNav(dir) {
   calMonth += dir;
   if (calMonth > 11) { calMonth = 0; calYear++; }
   if (calMonth < 0) { calMonth = 11; calYear--; }
   renderCalendar();
 }
+
 function renderCalendar() {
   const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
   document.getElementById('calTitle').textContent = calYear + ' ' + months[calMonth];
@@ -269,7 +302,11 @@ function renderCalendar() {
   const firstDay = new Date(calYear, calMonth, 1).getDay();
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
   const today = new Date(); today.setHours(0,0,0,0);
-  for (let i = 0; i < firstDay; i++) html += `<div class="cal-day empty"></div>`;
+  
+  for (let i = 0; i < firstDay; i++) {
+    html += `<div class="cal-day empty"></div>`;
+  }
+  
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(calYear, calMonth, d);
     const isPast = date < today;
@@ -279,11 +316,13 @@ function renderCalendar() {
     if (isPast) cls += ' disabled';
     if (isToday) cls += ' today';
     if (isSelected) cls += ' selected';
-    const click = isPast ? '' : `onclick="selectDate(${calYear},${calMonth},${d})"`;
-    html += `<div class="${cls}" ${click}>${d}</div>`;
+    
+    // 使用 data attributes 而不是 inline onclick
+    html += `<div class="${cls}" data-year="${calYear}" data-month="${calMonth}" data-day="${d}">${d}</div>`;
   }
   grid.innerHTML = html;
 }
+
 function selectDate(y, m, d) {
   selectedDate = new Date(y, m, d);
   const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
@@ -291,10 +330,12 @@ function selectDate(y, m, d) {
   txt.textContent = y + '年 ' + months[m] + ' ' + d + '日';
   txt.classList.remove('placeholder');
   renderCalendar();
-  // Close popup
+  
+  // 關閉彈窗
   document.getElementById('calendarPopup').classList.remove('show');
   document.getElementById('dateDisplay').classList.remove('open');
 }
+
 function getSelectedDateStr() {
   if (!selectedDate) return null;
   const y = selectedDate.getFullYear();
