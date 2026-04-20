@@ -13,47 +13,38 @@ body{display:flex;}
 .step-circle{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:var(--text3);transition:all 0.25s;flex-shrink:0;}
 .step-item.active .step-circle{border-color:var(--accent);background:var(--accent);color:#fff;}
 .step-item.done .step-circle{border-color:var(--green);background:var(--green);color:#fff;}
-.step-label{font-size:0.84rem;font-weight:700;color:var(--text3);}
-.step-item.active .step-label{color:var(--text);} .step-item.done .step-label{color:var(--green);}
 .step-line{flex:1;height:2px;background:var(--border);margin:0 12px;}
 .step-line.done{background:var(--green);}
-.form-group{margin-bottom:20px;} .form-group label{display:block;font-size:0.84rem;font-weight:700;margin-bottom:8px;color:var(--text2);}
-input,textarea,select{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:0.92rem;font-family:inherit;transition:all 0.15s;}
-input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light);}
-.amt-type-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.amt-card{border:1.5px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:all 0.15s;text-align:center;}
-.amt-card:hover{border-color:var(--accent);background:var(--accent-light);}
-.amt-card.active{border-color:var(--accent);background:var(--accent-light);box-shadow:0 0 0 1px var(--accent);}
-.amt-card-title{font-size:0.88rem;font-weight:700;margin-bottom:4px;}
-.amt-card-desc{font-size:0.72rem;color:var(--text3);}
-.preview-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--surface);}
-.preview-label{color:var(--text2);font-size:0.88rem;} .preview-val{font-weight:600;font-size:0.88rem;}
-.success-card{text-align:center;padding:32px 20px;} .success-icon{font-size:3rem;margin-bottom:16px;}
-.share-box{background:var(--surface);padding:14px;border-radius:10px;margin-top:20px;word-break:break-all;font-family:monospace;font-size:0.85rem;}
-@media(max-width:768px){ .steps-outer{display:none;} .sidebar{display:none;} body{display:block;} .content{padding:20px;} }
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:32px;box-shadow:var(--shadow-md);margin-bottom:24px;}
+.form-group{margin-bottom:20px;}
+.form-label{display:block;font-size:0.82rem;font-weight:700;color:var(--text2);margin-bottom:8px;}
+.form-input{width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:0.95rem;transition:all 0.2s;outline:none;}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light);}
+.btn-row{display:flex;justify-content:flex-end;gap:12px;margin-top:32px;}
 </style>
 </head>
 <body>
 
+<div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
 <nav class="mobile-nav">
-  <div class="nav-logo"><div class="nav-logo-dot"></div>PayClub</div>
-  <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <div class="mobile-nav-logo"><span style="width:7px;height:7px;background:var(--accent);border-radius:50%;display:inline-block;margin-right:4px"></span>PayClub</div>
+  <button class="hamburger" onclick="openSidebar()">☰</button>
 </nav>
 
 <aside class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <div class="nav-logo"><div class="nav-logo-dot"></div>PayClub</div>
-  </div>
-  <div class="sidebar-nav">
-    <a href="dashboard.html" class="nav-item"><span>📊</span>總覽首頁</a>
-    <a href="create.html" class="nav-item active"><span>➕</span>建立活動</a>
-    <a href="member.html" class="nav-item"><span>🤝</span>加入活動</a>
-    <a href="report.html" class="nav-item"><span>📄</span>財務報表</a>
-    <a href="notifications.html" class="nav-item"><span>🔔</span>通知中心</a>
-    
+  <div class="sidebar-logo"><div class="logo-dot"></div>PayClub</div>
+  <nav class="sidebar-nav">
+    <a class="nav-item" href="dashboard.html"><span class="icon">🏠</span>總覽</a>
+    <a class="nav-item active" href="create.html"><span class="icon">➕</span>建立活動</a>
+    <a class="nav-item" href="member.html"><span class="icon">🤝</span>加入活動</a>
+    <a class="nav-item" href="report.html"><span class="icon">📊</span>財務報表</a>
+    <div class="nav-section">我的活動</div>
     <div id="sidebarEvents"></div>
-  </div>
-  
+    <a class="nav-item" href="index.html"><span class="icon">🌐</span>首頁</a>
+    <a class="nav-item" href="notifications.html" style="position:relative">
+      <span class="icon">🔔</span>通知<span class="badge-notify" id="notifBadge" style="display:none">0</span>
+    </a>
+  </nav>
   <div class="sidebar-bottom">
     <div class="user-card">
       <div class="avatar" id="avatarInitial">?</div>
@@ -66,82 +57,95 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);
   </div>
 </aside>
 
-<main class="content">
-  <div class="header">
-    <h1 class="page-title">建立新活動</h1>
-    <p class="page-subtitle">簡單三步驟，開始管理您的團體金流</p>
-  </div>
-
-  <div class="steps-outer">
+<main class="main">
+  <div class="content">
     <div class="steps">
-      <div class="step-item active" id="si1"><div class="step-circle">1</div><div class="step-label">基本資訊</div></div>
-      <div class="step-line" id="sl1"></div>
-      <div class="step-item" id="si2"><div class="step-circle">2</div><div class="step-label">金額設定</div></div>
-      <div class="step-line" id="sl2"></div>
-      <div class="step-item" id="si3"><div class="step-circle">3</div><div class="step-label">確認發布</div></div>
+      <div id="si1" class="step-item active"><div class="step-circle">1</div><span style="font-size:0.85rem;font-weight:600">基本資訊</span></div>
+      <div id="sl1" class="step-line"></div>
+      <div id="si2" class="step-item"><div class="step-circle">2</div><span style="font-size:0.85rem;font-weight:600">金額設定</span></div>
+      <div id="sl2" class="step-line"></div>
+      <div id="si3" class="step-item"><div class="step-circle">3</div><span style="font-size:0.85rem;font-weight:600">確認預覽</span></div>
     </div>
-  </div>
 
-  <div id="s1" class="form-card">
-    <div class="form-group"><label>活動名稱</label><input type="text" id="s1Title" placeholder="例如：2025 迎新系烤"></div>
-    <div class="form-group"><label>截止日期</label>
-      <div style="display:flex;gap:8px;">
-        <select id="dlYear" style="flex:1.2"></select>
-        <select id="dlMonth" style="flex:1"></select>
-        <select id="dlDay" style="flex:1"></select>
+    <div id="s1" class="card">
+      <h2 style="margin-bottom:20px;">建立新活動</h2>
+      <div class="form-group">
+        <label class="form-label">活動名稱</label>
+        <input type="text" id="s1Title" class="form-input" placeholder="例如：12月系學會聚餐">
       </div>
-    </div>
-    <div class="form-group"><label>活動描述 (選填)</label><textarea id="s1Desc" rows="3" placeholder="說明繳費用途或備註..."></textarea></div>
-    <div class="btn-row"><button class="btn btn-primary" onclick="goStep(2)" style="width:100%">下一步：設定金額</button></div>
-  </div>
-
-  <div id="s2" class="form-card" style="display:none">
-    <div class="form-group"><label>收費模式</label>
-      <div class="amt-type-row">
-        <div class="amt-card active" id="modeFixed" onclick="setMode('fixed')">
-          <div class="amt-card-title">固定金額</div><div class="amt-card-desc">每個人收一樣的錢</div>
-        </div>
-        <div class="amt-card" id="modeFlex" onclick="setMode('flex')">
-          <div class="amt-card-title">彈性金額</div><div class="amt-card-desc">後續再手動調整</div>
+      <div class="form-group">
+        <label class="form-label">截止日期</label>
+        <div style="display:flex;gap:8px;">
+          <select id="dlYear" class="form-input" style="flex:2"></select>
+          <select id="dlMonth" class="form-input" style="flex:1"></select>
+          <select id="dlDay" class="form-input" style="flex:1"></select>
         </div>
       </div>
-    </div>
-    <div class="form-group" id="fixedInputGroup"><label>每人應繳金額</label><input type="number" id="fixedAmt" placeholder="0" min="0"></div>
-    <div class="btn-row" style="display:grid;grid-template-columns:1fr 2fr;gap:12px;">
-      <button class="btn btn-secondary" onclick="goStep(1)">上一步</button>
-      <button class="btn btn-primary" onclick="preview()">最後確認</button>
-    </div>
-  </div>
-
-  <div id="s3" class="form-card" style="display:none">
-    <h3 style="margin-bottom:16px;">活動預覽</h3>
-    <div class="preview-item"><span class="preview-label">活動名稱</span><span class="preview-val" id="pTitle"></span></div>
-    <div class="preview-item"><span class="preview-label">截止日期</span><span class="preview-val" id="pDl"></span></div>
-    <div class="preview-item"><span class="preview-label">收費模式</span><span class="preview-val" id="pMode"></span></div>
-    <div class="preview-item"><span class="preview-label">預設金額</span><span class="preview-val" id="pAmt"></span></div>
-    <div class="btn-row" style="display:grid;grid-template-columns:1fr 2fr;gap:12px;margin-top:24px;">
-      <button class="btn btn-secondary" onclick="goStep(2)">回上一步</button>
-      <button class="btn btn-primary" onclick="submitCreate()">確認並建立活動</button>
-    </div>
-  </div>
-
-  <div id="sDone" class="form-card" style="display:none">
-    <div class="success-card">
-      <div class="success-icon">🎉</div><h2>活動建立成功！</h2>
-      <p style="color:var(--text2);margin-top:8px;">您的活動邀請碼如下，請將連結分享給成員</p>
-      <div class="share-box" id="generatedLink"></div>
-      <div style="margin-top:24px;display:flex;gap:12px;">
-        <button class="btn btn-primary" onclick="location.href='dashboard.html'" style="flex:1">回總覽首頁</button>
-        <button class="btn btn-secondary" onclick="PC_copyText(document.getElementById('generatedLink').textContent)" style="flex:1">複製連結</button>
+      <div class="form-group">
+        <label class="form-label">活動說明 (選填)</label>
+        <textarea id="s1Desc" class="form-input" style="min-height:80px;resize:none;" placeholder="簡單介紹活動內容..."></textarea>
       </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="goStep(2)">下一步</button>
+      </div>
+    </div>
+
+    <div id="s2" class="card" style="display:none;">
+      <h2 style="margin-bottom:20px;">金額設定</h2>
+      <div class="form-group">
+        <label class="form-label">收費模式</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div id="m1" class="role-option active" style="margin-bottom:0" onclick="setMode('fixed')">
+            <div style="font-weight:600">固定金額</div>
+            <div style="font-size:0.75rem;color:var(--text3)">每人收費相同</div>
+          </div>
+          <div id="m2" class="role-option" style="margin-bottom:0" onclick="setMode('custom')">
+            <div style="font-weight:600">彈性金額</div>
+            <div style="font-size:0.75rem;color:var(--text3)">每人收費不同</div>
+          </div>
+        </div>
+      </div>
+      <div id="fixedInput" class="form-group">
+        <label class="form-label">收費金額 (TWD)</label>
+        <input type="number" id="fixedAmt" class="form-input" placeholder="500">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goStep(1)">上一步</button>
+        <button class="btn btn-primary" onclick="preview()">下一步</button>
+      </div>
+    </div>
+
+    <div id="s3" class="card" style="display:none;">
+      <h2 style="margin-bottom:20px;">確認活動資訊</h2>
+      <div style="background:var(--bg);padding:20px;border-radius:10px;margin-bottom:20px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div><label class="form-label">活動標題</label><div id="pTitle" style="font-weight:600"></div></div>
+          <div><label class="form-label">截止日期</label><div id="pDl" style="font-weight:600"></div></div>
+          <div><label class="form-label">收費模式</label><div id="pMode" style="font-weight:600"></div></div>
+          <div><label class="form-label">金額</label><div id="pAmt" style="font-weight:600"></div></div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goStep(2)">上一步</button>
+        <button class="btn btn-primary" onclick="submitCreate()">確認並建立</button>
+      </div>
+    </div>
+
+    <div id="sSuccess" class="card" style="display:none;text-align:center;">
+      <h2 style="margin-bottom:12px;">活動建立成功！</h2>
+      <div style="background:var(--accent-light);padding:24px;border-radius:12px;margin-bottom:24px;">
+        <div id="inviteCode" style="font-size:2rem;font-weight:800;color:var(--accent);letter-spacing:4px;"></div>
+      </div>
+      <div class="form-group" style="text-align:left;">
+        <label class="form-label">繳費連結</label>
+        <div id="generatedLink" class="form-input" style="background:var(--bg);font-size:0.8rem;word-break:break-all;"></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="location.href='dashboard.html'">進入儀表板</button>
     </div>
   </div>
 </main>
 
 <script>
-let amtMode = 'fixed';
-const yS = document.getElementById('dlYear'), mS = document.getElementById('dlMonth'), dS = document.getElementById('dlDay');
-
 // 初始化
 window.onload = () => {
   if (!PC_isLoggedIn()) {
@@ -150,7 +154,7 @@ window.onload = () => {
   }
   const user = PC_getUser();
 
-  // 1. 渲染使用者資訊 (頭像與名稱)
+  // 1. 渲染使用者資訊 (完全同步 Dashboard)
   const uName = user.name || user.email || '使用者';
   const nameEl = document.getElementById('userName');
   const emailEl = document.getElementById('userEmail');
@@ -160,78 +164,67 @@ window.onload = () => {
   if (emailEl) emailEl.textContent = user.email || '';
   if (avatarEl) avatarEl.textContent = uName.slice(0, 1).toUpperCase();
 
-  // 2. 初始化側邊欄活動列表
+  // 2. 初始化側邊欄
   renderSidebar();
-
-  // 3. 初始化日期選單
-  initDateSelects();
 };
 
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('mobileOverlay').classList.add('show');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mobileOverlay').classList.remove('show');}
+function toggleSideMenu(id){document.getElementById(id).classList.toggle('open');document.getElementById(id+'_icon').classList.toggle('open');}
 
-function initDateSelects() {
-  const now = new Date();
-  const curY = now.getFullYear();
-  for (let i = 0; i < 5; i++) {
-    let o = document.createElement('option');
-    o.value = curY + i; o.textContent = (curY + i) + '年';
-    yS.appendChild(o);
-  }
-  for (let i = 1; i <= 12; i++) {
-    let o = document.createElement('option');
-    o.value = i; o.textContent = i + '月';
-    if (i === (now.getMonth() + 1)) o.selected = true;
-    mS.appendChild(o);
-  }
-  updateDays();
-  yS.onchange = updateDays;
-  mS.onchange = updateDays;
+function renderSidebar(){
+  const evts=PC_getAllMyEvents();
+  const created=evts.filter(e=>e._isOwner),joined=evts.filter(e=>!e._isOwner);
+  let html='';
+  html+=`<div class="sidebar-menu-header" onclick="toggleSideMenu('mc')">已建立活動 <span class="chevron open" id="mc_icon">▼</span></div><div class="sidebar-menu-list open" id="mc">`;
+  if(!created.length)html+=`<div style="padding:4px 12px;font-size:0.74rem;color:var(--text3)">無資料</div>`;
+  html+=created.map(e=>`<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('')+'</div>';
+  html+=`<div class="sidebar-menu-header" onclick="toggleSideMenu('mj')">已加入活動 <span class="chevron open" id="mj_icon">▼</span></div><div class="sidebar-menu-list open" id="mj">`;
+  if(!joined.length)html+=`<div style="padding:4px 12px;font-size:0.74rem;color:var(--text3)">無資料</div>`;
+  html+=joined.map(e=>`<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('')+'</div>';
+  const c=document.getElementById('sidebarEvents');if(c)c.innerHTML=html;
 }
 
-function updateDays() {
-  const y = parseInt(yS.value), m = parseInt(mS.value);
-  const days = new Date(y, m, 0).getDate();
-  const prev = dS.value;
-  dS.innerHTML = '';
-  for (let d = 1; d <= days; d++) {
-    let o = document.createElement('option');
-    o.value = d; o.textContent = d + '日';
-    if (d == prev) o.selected = true;
-    dS.appendChild(o);
-  }
-}
+const yS=document.getElementById('dlYear'), mS=document.getElementById('dlMonth'), dS=document.getElementById('dlDay');
+const now=new Date();
+for(let i=0; i<3; i++) yS.add(new Option(now.getFullYear()+i, now.getFullYear()+i));
+for(let i=1; i<=12; i++) mS.add(new Option(i, i));
+for(let i=1; i<=31; i++) dS.add(new Option(i, i));
 
-function goStep(n) {
-  [1, 2, 3].forEach(i => {
-    document.getElementById('s' + i).style.display = (i === n ? 'block' : 'none');
-    const si = document.getElementById('si' + i), sl = document.getElementById('sl' + i);
-    si.className = 'step-item' + (i === n ? ' active' : (i < n ? ' done' : ''));
-    if (sl) sl.className = 'step-line' + (i < n ? ' done' : '');
+let amtMode = 'fixed';
+let members = []; 
+
+function goStep(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('s'+i).style.display = (i===n)?'block':'none';
+    document.getElementById('si'+i).className = (i<n)?'step-item done':(i===n)?'step-item active':'step-item';
+    const line = document.getElementById('sl'+i);
+    if(line) line.className = (i<n)?'step-line done':'step-line';
   });
 }
 
-function setMode(m) {
-  amtMode = m;
-  document.getElementById('modeFixed').className = 'amt-card' + (m === 'fixed' ? ' active' : '');
-  document.getElementById('modeFlex').className = 'amt-card' + (m === 'flex' ? ' active' : '');
-  document.getElementById('fixedInputGroup').style.display = (m === 'fixed' ? 'block' : 'none');
+function setMode(m){
+  amtMode=m;
+  document.getElementById('m1').className = m==='fixed'?'role-option active':'role-option';
+  document.getElementById('m2').className = m==='custom'?'role-option active':'role-option';
+  document.getElementById('fixedInput').style.display = m==='fixed'?'block':'none';
 }
 
-function preview() {
+function preview(){
   const title = document.getElementById('s1Title').value.trim();
-  if (!title) { PC_toast('請輸入名稱'); return; }
+  if(!title){ PC_toast('請輸入名稱'); return; }
   document.getElementById('pTitle').textContent = title;
   document.getElementById('pDl').textContent = `${yS.value}-${mS.value}-${dS.value}`;
-  document.getElementById('pMode').textContent = amtMode === 'fixed' ? '固定金額' : '彈性金額';
-  document.getElementById('pAmt').textContent = amtMode === 'fixed' ? '$' + (document.getElementById('fixedAmt').value || 0) : '依成員設定';
+  document.getElementById('pMode').textContent = amtMode==='fixed'?'固定':'彈性';
+  document.getElementById('pAmt').textContent = '$'+(document.getElementById('fixedAmt').value||0);
   goStep(3);
 }
 
-function submitCreate() {
+function submitCreate(){
   const user = PC_getUser();
   const title = document.getElementById('s1Title').value.trim();
-  const dl = `${yS.value}-${mS.value.padStart(2, '0')}-${dS.value.padStart(2, '0')}`;
-  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const dl = `${yS.value}-${mS.value.padStart(2,'0')}-${dS.value.padStart(2,'0')}`;
+  const code = Math.random().toString(36).substring(2,8).toUpperCase();
   const id = 'e' + Date.now();
 
   const newEvt = {
@@ -239,7 +232,7 @@ function submitCreate() {
     title: title,
     ownerEmail: user.email,
     amountMode: amtMode,
-    amount: amtMode === 'fixed' ? (document.getElementById('fixedAmt').value || 0) : 0,
+    amount: document.getElementById('fixedAmt').value || 0,
     deadline: dl,
     desc: document.getElementById('s1Desc').value.trim(),
     status: 'active',
@@ -251,42 +244,11 @@ function submitCreate() {
   evts.unshift(newEvt);
   PC_saveEvents(evts);
 
+  document.getElementById('inviteCode').textContent = code;
+  document.getElementById('generatedLink').textContent = location.href.replace('create.html','pay.html')+'?event='+id;
   document.getElementById('s3').style.display = 'none';
-  document.getElementById('sDone').style.display = 'block';
-  document.getElementById('si3').className = 'step-item done';
-  document.getElementById('generatedLink').textContent = window.location.origin + window.location.pathname.replace('create.html', 'pay.html') + '?event=' + id;
-}
-
-// 側邊欄收合功能邏輯
-function toggleSideMenu(id) {
-  const list = document.getElementById(id);
-  const icon = document.getElementById(id + '_icon');
-  if (list && icon) {
-    const isOpen = list.classList.toggle('open');
-    icon.classList.toggle('open', isOpen);
-  }
-}
-
-// 渲染側邊欄活動列表 (同步自 Dashboard)
-function renderSidebar() {
-  const evts = PC_getAllMyEvents();
-  const created = evts.filter(e => e._isOwner);
-  const joined = evts.filter(e => !e._isOwner);
-  
-  let html = '';
-  
-  // 已建立
-  html += `<div class="sidebar-menu-header" onclick="toggleSideMenu('mc')">已建立 <span class="chevron open" id="mc_icon">▼</span></div><div class="sidebar-menu-list open" id="mc">`;
-  if (!created.length) html += `<div style="padding:4px 12px;font-size:0.74rem;color:var(--text3)">無活動</div>`;
-  html += created.map(e => `<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('') + '</div>';
-  
-  // 已加入
-  html += `<div class="sidebar-menu-header" onclick="toggleSideMenu('mj')">已加入 <span class="chevron open" id="mj_icon">▼</span></div><div class="sidebar-menu-list open" id="mj">`;
-  if (!joined.length) html += `<div style="padding:4px 12px;font-size:0.74rem;color:var(--text3)">無活動</div>`;
-  html += joined.map(e => `<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('') + '</div>';
-  
-  const c = document.getElementById('sidebarEvents');
-  if (c) c.innerHTML = html;
+  document.getElementById('sSuccess').style.display = 'block';
+  renderSidebar();
 }
 </script>
 </body>
