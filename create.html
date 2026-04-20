@@ -7,19 +7,25 @@
 <link rel="stylesheet" href="shared.css"><script src="pc_auth.js"></script>
 <style>
 body{display:flex;}
-.content{max-width:680px;width:100%;} .form-card{max-width:620px;} .btn-row{max-width:620px;}
-.steps{display:flex;align-items:center;margin-bottom:28px;width:100%;}
-.step-item{display:flex;align-items:center;gap:7px;}
-.step-circle{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:var(--text3);transition:all 0.25s;flex-shrink:0;}
+.steps-outer{max-width:620px;margin-bottom:28px;}
+.steps{display:flex;align-items:center;width:100%;}
+.step-item{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.step-circle{width:30px;height:30px;border-radius:50%;border:2px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:var(--text3);transition:all 0.25s;flex-shrink:0;}
 .step-item.active .step-circle{border-color:var(--accent);background:var(--accent);color:#fff;}
 .step-item.done .step-circle{border-color:var(--green);background:var(--green);color:#fff;}
 .step-line{flex:1;height:2px;background:var(--border);margin:0 12px;}
 .step-line.done{background:var(--green);}
 .card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:32px;box-shadow:var(--shadow-md);margin-bottom:24px;}
-.form-group{margin-bottom:20px;}
-.form-label{display:block;font-size:0.82rem;font-weight:700;color:var(--text2);margin-bottom:8px;}
-.form-input{width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:0.95rem;transition:all 0.2s;outline:none;}
+.form-group{margin-bottom:24px;}
+.form-label{display:block;font-size:0.82rem;font-weight:700;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;}
+.form-input{width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:0.95rem;font-family:inherit;transition:all 0.2s;outline:none;}
 .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light);}
+.role-option{display:flex;align-items:center;padding:16px;border:1.5px solid var(--border);border-radius:12px;cursor:pointer;transition:all 0.15s;margin-bottom:10px;gap:12px;}
+.role-option:hover{border-color:var(--accent);background:var(--accent-light);}
+.role-option.selected{border-color:var(--accent);background:var(--accent-light);box-shadow:0 0 0 1px var(--accent);}
+.role-check{width:20px;height:20px;border-radius:6px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;}
+.role-option.selected .role-check{background:var(--accent);border-color:var(--accent);}
+.role-option.selected .role-check::after{content:'✓';color:#fff;font-size:0.8rem;font-weight:700;}
 .btn-row{display:flex;justify-content:flex-end;gap:12px;margin-top:32px;}
 </style>
 </head>
@@ -58,83 +64,91 @@ body{display:flex;}
 </aside>
 
 <main class="main">
-  <div class="content">
-    <div class="steps">
-      <div id="si1" class="step-item active"><div class="step-circle">1</div><span style="font-size:0.85rem;font-weight:600">基本資訊</span></div>
-      <div id="sl1" class="step-line"></div>
-      <div id="si2" class="step-item"><div class="step-circle">2</div><span style="font-size:0.85rem;font-weight:600">金額設定</span></div>
-      <div id="sl2" class="step-line"></div>
-      <div id="si3" class="step-item"><div class="step-circle">3</div><span style="font-size:0.85rem;font-weight:600">確認預覽</span></div>
+  <div class="content" style="max-width:800px;">
+    <div class="steps-outer">
+      <div class="steps">
+        <div id="si1" class="step-item active"><div class="step-circle">1</div><span style="font-size:0.85rem;font-weight:600;color:var(--text)">基本資訊</span></div>
+        <div id="sl1" class="step-line"></div>
+        <div id="si2" class="step-item"><div class="step-circle">2</div><span style="font-size:0.85rem;font-weight:600;color:var(--text3)">人員與權限</span></div>
+        <div id="sl2" class="step-line"></div>
+        <div id="si3" class="step-item"><div class="step-circle">3</div><span style="font-size:0.85rem;font-weight:600;color:var(--text3)">完成建立</span></div>
+      </div>
     </div>
 
     <div id="s1" class="card">
-      <h2 style="margin-bottom:20px;">建立新活動</h2>
+      <h2 style="margin-bottom:8px;">建立新活動</h2>
+      <p style="color:var(--text2);font-size:0.88rem;margin-bottom:28px;">填寫活動名稱與截止日期，開始管理您的團體帳務。</p>
       <div class="form-group">
         <label class="form-label">活動名稱</label>
-        <input type="text" id="s1Title" class="form-input" placeholder="例如：12月系學會聚餐">
+        <input type="text" id="s1Title" class="form-input" placeholder="例如：2025 寒假系排集訓">
       </div>
       <div class="form-group">
         <label class="form-label">截止日期</label>
-        <div style="display:flex;gap:8px;">
-          <select id="dlYear" class="form-input" style="flex:2"></select>
+        <div style="display:flex;gap:10px;">
+          <select id="dlYear" class="form-input" style="flex:1.5"></select>
           <select id="dlMonth" class="form-input" style="flex:1"></select>
           <select id="dlDay" class="form-input" style="flex:1"></select>
         </div>
       </div>
       <div class="form-group">
         <label class="form-label">活動說明 (選填)</label>
-        <textarea id="s1Desc" class="form-input" style="min-height:80px;resize:none;" placeholder="簡單介紹活動內容..."></textarea>
+        <textarea id="s1Desc" class="form-input" style="min-height:100px;resize:none;" placeholder="在此輸入活動的詳細說明或繳費備註..."></textarea>
       </div>
       <div class="btn-row">
-        <button class="btn btn-primary" onclick="goStep(2)">下一步</button>
+        <button class="btn btn-primary" onclick="goStep(2)">下一步：設定人員</button>
       </div>
     </div>
 
     <div id="s2" class="card" style="display:none;">
-      <h2 style="margin-bottom:20px;">金額設定</h2>
+      <h2 style="margin-bottom:8px;">人員與權限</h2>
+      <p style="color:var(--text2);font-size:0.88rem;margin-bottom:24px;">您可以直接邀請成員或在建立後分享邀請連結。</p>
+      
       <div class="form-group">
-        <label class="form-label">收費模式</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div id="m1" class="role-option active" style="margin-bottom:0" onclick="setMode('fixed')">
-            <div style="font-weight:600">固定金額</div>
-            <div style="font-size:0.75rem;color:var(--text3)">每人收費相同</div>
+        <label class="form-label">邀請成員 (Email)</label>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <input type="email" id="inviteEmail" class="form-input" placeholder="example@email.com">
+          <input type="text" id="inviteName" class="form-input" style="width:120px" placeholder="姓名">
+          <button class="btn btn-ghost" onclick="addInvitee()" style="white-space:nowrap;">新增</button>
+        </div>
+        
+        <div class="form-label" style="font-size:0.75rem;">設定角色權限 (可多選)</div>
+        <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:20px;">
+          <div class="role-option" id="role_payer" onclick="toggleRole('payer')">
+            <div class="role-check"></div>
+            <div>
+              <div style="font-weight:700;font-size:0.9rem">繳費者</div>
+              <div style="font-size:0.75rem;color:var(--text3)">需要支付款項的成員</div>
+            </div>
           </div>
-          <div id="m2" class="role-option" style="margin-bottom:0" onclick="setMode('custom')">
-            <div style="font-weight:600">彈性金額</div>
-            <div style="font-size:0.75rem;color:var(--text3)">每人收費不同</div>
+          <div class="role-option" id="role_manager" onclick="toggleRole('manager')">
+            <div class="role-check"></div>
+            <div>
+              <div style="font-weight:700;font-size:0.9rem">統計者</div>
+              <div style="font-size:0.75rem;color:var(--text3)">協助核對帳款、編輯活動資訊</div>
+            </div>
+          </div>
+          <div class="role-option" id="role_viewer" onclick="toggleRole('viewer')">
+            <div class="role-check"></div>
+            <div>
+              <div style="font-weight:700;font-size:0.9rem">觀察者</div>
+              <div style="font-size:0.75rem;color:var(--text3)">僅能查看報表與進度，無法編輯</div>
+            </div>
           </div>
         </div>
+
+        <div id="inviteList" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
       </div>
-      <div id="fixedInput" class="form-group">
-        <label class="form-label">收費金額 (TWD)</label>
-        <input type="number" id="fixedAmt" class="form-input" placeholder="500">
-      </div>
+
       <div class="btn-row">
         <button class="btn btn-ghost" onclick="goStep(1)">上一步</button>
-        <button class="btn btn-primary" onclick="preview()">下一步</button>
+        <button class="btn btn-primary" onclick="submitCreate()">確認並建立活動</button>
       </div>
     </div>
 
-    <div id="s3" class="card" style="display:none;">
-      <h2 style="margin-bottom:20px;">確認活動資訊</h2>
-      <div style="background:var(--bg);padding:20px;border-radius:10px;margin-bottom:20px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-          <div><label class="form-label">活動標題</label><div id="pTitle" style="font-weight:600"></div></div>
-          <div><label class="form-label">截止日期</label><div id="pDl" style="font-weight:600"></div></div>
-          <div><label class="form-label">收費模式</label><div id="pMode" style="font-weight:600"></div></div>
-          <div><label class="form-label">金額</label><div id="pAmt" style="font-weight:600"></div></div>
-        </div>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-ghost" onclick="goStep(2)">上一步</button>
-        <button class="btn btn-primary" onclick="submitCreate()">確認並建立</button>
-      </div>
-    </div>
-
-    <div id="sSuccess" class="card" style="display:none;text-align:center;">
-      <h2 style="margin-bottom:12px;">活動建立成功！</h2>
-      <div style="background:var(--accent-light);padding:24px;border-radius:12px;margin-bottom:24px;">
-        <div id="inviteCode" style="font-size:2rem;font-weight:800;color:var(--accent);letter-spacing:4px;"></div>
+    <div id="s3" class="card" style="display:none;text-align:center;">
+      <h2 style="margin-bottom:8px;">活動建立成功！</h2>
+      <div style="background:var(--bg);padding:24px;border-radius:12px;margin:24px 0;">
+        <div id="inviteCodeDisp" style="font-size:2.2rem;font-weight:800;color:var(--accent);letter-spacing:4px;"></div>
       </div>
       <div class="form-group" style="text-align:left;">
         <label class="form-label">繳費連結</label>
@@ -146,109 +160,102 @@ body{display:flex;}
 </main>
 
 <script>
-// 初始化
-window.onload = () => {
-  if (!PC_isLoggedIn()) {
-    location.href = 'login.html';
-    return;
-  }
-  const user = PC_getUser();
-
-  // 1. 渲染使用者資訊 (完全同步 Dashboard)
-  const uName = user.name || user.email || '使用者';
-  const nameEl = document.getElementById('userName');
-  const emailEl = document.getElementById('userEmail');
-  const avatarEl = document.getElementById('avatarInitial');
-  
-  if (nameEl) nameEl.textContent = uName;
-  if (emailEl) emailEl.textContent = user.email || '';
-  if (avatarEl) avatarEl.textContent = uName.slice(0, 1).toUpperCase();
-
-  // 2. 初始化側邊欄
-  renderSidebar();
-};
+let members = [];
+let selectedRoles = new Set();
 
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('mobileOverlay').classList.add('show');}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mobileOverlay').classList.remove('show');}
 function toggleSideMenu(id){document.getElementById(id).classList.toggle('open');document.getElementById(id+'_icon').classList.toggle('open');}
 
 function renderSidebar(){
-  const evts=PC_getAllMyEvents();
-  const created=evts.filter(e=>e._isOwner),joined=evts.filter(e=>!e._isOwner);
-  let html='';
-  html+=`<div class="sidebar-menu-header" onclick="toggleSideMenu('mc')">已建立活動 <span class="chevron open" id="mc_icon">▼</span></div><div class="sidebar-menu-list open" id="mc">`;
-  if(!created.length)html+=`<div style="padding:4px 12px;font-size:0.74rem;color:var(--text3)">無資料</div>`;
-  html+=created.map(e=>`<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('')+'</div>';
-  html+=`<div class="sidebar-menu-header" onclick="toggleSideMenu('mj')">已加入活動 <span class="chevron open" id="mj_icon">▼</span></div><div class="sidebar-menu-list open" id="mj">`;
-  if(!joined.length)html+=`<div style="padding:4px 12px;font-size:0.74rem;color:var(--text3)">無資料</div>`;
-  html+=joined.map(e=>`<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('')+'</div>';
-  const c=document.getElementById('sidebarEvents');if(c)c.innerHTML=html;
+  const evts = PC_getAllMyEvents();
+  const created = evts.filter(e => e._isOwner);
+  const joined = evts.filter(e => !e._isOwner);
+  let html = '';
+  html += `<div class="sidebar-menu-header" onclick="toggleSideMenu('mc')">已建立活動 <span class="chevron open" id="mc_icon">▼</span></div><div class="sidebar-menu-list open" id="mc">`;
+  html += created.map(e => `<a class="nav-event" href="event.html?id=${e.id}"><span>${e.title}</span></a>`).join('') || '<div style="padding:4px 12px;font-size:0.74rem;color:var(--text3)">無資料</div>';
+  html += `</div><div class="sidebar-menu-header" onclick="toggleSideMenu('mj')">已加入活動 <span class="chevron open" id="mj_icon">▼</span></div><div class="sidebar-menu-list open" id="mj">`;
+  html += joined.map(e => `<a class="nav-event" href="event.html?id=${e.id}"><span>${e.title}</span></a>`).join('') || '<div style="padding:4px 12px;font-size:0.74rem;color:var(--text3)">無資料</div>';
+  html += `</div>`;
+  document.getElementById('sidebarEvents').innerHTML = html;
 }
 
-const yS=document.getElementById('dlYear'), mS=document.getElementById('dlMonth'), dS=document.getElementById('dlDay');
-const now=new Date();
-for(let i=0; i<3; i++) yS.add(new Option(now.getFullYear()+i, now.getFullYear()+i));
-for(let i=1; i<=12; i++) mS.add(new Option(i, i));
-for(let i=1; i<=31; i++) dS.add(new Option(i, i));
+window.onload = () => {
+  if(!PC_isLoggedIn()){ location.href='login.html'; return; }
+  const user = PC_getUser();
+  document.getElementById('userName').textContent = user.name || user.email;
+  document.getElementById('userEmail').textContent = user.email;
+  document.getElementById('avatarInitial').textContent = (user.name || user.email).slice(0,1).toUpperCase();
+  renderSidebar();
+  initDateSelects();
+};
 
-let amtMode = 'fixed';
-let members = []; 
+const yS=document.getElementById('dlYear'), mS=document.getElementById('dlMonth'), dS=document.getElementById('dlDay');
+function initDateSelects(){
+  const now = new Date();
+  for(let i=0; i<5; i++) yS.add(new Option((now.getFullYear()+i)+'年', now.getFullYear()+i));
+  for(let i=1; i<=12; i++) mS.add(new Option(i+'月', i));
+  mS.value = now.getMonth()+1;
+  updateDays();
+  yS.onchange = updateDays; mS.onchange = updateDays;
+}
+function updateDays(){
+  const y=parseInt(yS.value), m=parseInt(mS.value), days=new Date(y, m, 0).getDate();
+  const prev=dS.value; dS.innerHTML='';
+  for(let d=1; d<=days; d++) dS.add(new Option(d+'日', d));
+  if(prev && prev<=days) dS.value=prev;
+}
+
+function toggleRole(role){
+  if(selectedRoles.has(role)) selectedRoles.delete(role);
+  else selectedRoles.add(role);
+  document.getElementById('role_'+role).classList.toggle('selected');
+}
+
+function addInvitee(){
+  const email = document.getElementById('inviteEmail').value.trim();
+  const name = document.getElementById('inviteName').value.trim();
+  if(!email || !selectedRoles.size){ PC_toast('請輸入 Email 並至少選擇一個角色'); return; }
+  members.push({ email, name: name||email.split('@')[0], roles: Array.from(selectedRoles) });
+  renderInviteeList();
+  document.getElementById('inviteEmail').value = ''; document.getElementById('inviteName').value = '';
+}
+
+function renderInviteeList(){
+  document.getElementById('inviteList').innerHTML = members.map((m,i)=>`
+    <div class="badge" style="background:var(--accent-light);color:var(--accent);display:flex;gap:6px;align-items:center;">
+      ${m.name} (${m.roles.length}) <span onclick="members.splice(${i},1);renderInviteeList()" style="cursor:pointer">×</span>
+    </div>
+  `).join('');
+}
 
 function goStep(n){
   [1,2,3].forEach(i=>{
-    document.getElementById('s'+i).style.display = (i===n)?'block':'none';
-    document.getElementById('si'+i).className = (i<n)?'step-item done':(i===n)?'step-item active':'step-item';
-    const line = document.getElementById('sl'+i);
-    if(line) line.className = (i<n)?'step-line done':'step-line';
+    if(document.getElementById('s'+i)) document.getElementById('s'+i).style.display = (i===n?'block':'none');
+    if(document.getElementById('si'+i)) document.getElementById('si'+i).className = (i<n?'step-item done':(i===n?'step-item active':'step-item'));
+    if(document.getElementById('sl'+i)) document.getElementById('sl'+i).className = (i<n?'step-line done':'step-line');
   });
-}
-
-function setMode(m){
-  amtMode=m;
-  document.getElementById('m1').className = m==='fixed'?'role-option active':'role-option';
-  document.getElementById('m2').className = m==='custom'?'role-option active':'role-option';
-  document.getElementById('fixedInput').style.display = m==='fixed'?'block':'none';
-}
-
-function preview(){
-  const title = document.getElementById('s1Title').value.trim();
-  if(!title){ PC_toast('請輸入名稱'); return; }
-  document.getElementById('pTitle').textContent = title;
-  document.getElementById('pDl').textContent = `${yS.value}-${mS.value}-${dS.value}`;
-  document.getElementById('pMode').textContent = amtMode==='fixed'?'固定':'彈性';
-  document.getElementById('pAmt').textContent = '$'+(document.getElementById('fixedAmt').value||0);
-  goStep(3);
 }
 
 function submitCreate(){
   const user = PC_getUser();
   const title = document.getElementById('s1Title').value.trim();
+  if(!title){ PC_toast('請輸入活動名稱'); return; }
   const dl = `${yS.value}-${mS.value.padStart(2,'0')}-${dS.value.padStart(2,'0')}`;
-  const code = Math.random().toString(36).substring(2,8).toUpperCase();
+  const code = PC_genInviteCode();
   const id = 'e' + Date.now();
-
+  
   const newEvt = {
-    id: id,
-    title: title,
-    ownerEmail: user.email,
-    amountMode: amtMode,
-    amount: document.getElementById('fixedAmt').value || 0,
-    deadline: dl,
-    desc: document.getElementById('s1Desc').value.trim(),
-    status: 'active',
-    inviteCode: code,
-    members: []
+    id, title, ownerEmail: user.email, amountMode: 'per_person', amount: 0,
+    deadline: dl, desc: document.getElementById('s1Desc').value.trim(),
+    status: 'active', inviteCode: code,
+    members: members.map(m=>({ ...m, role: m.roles[0], status: 'pending_invite' }))
   };
 
-  const evts = PC_getEvents();
-  evts.unshift(newEvt);
-  PC_saveEvents(evts);
-
-  document.getElementById('inviteCode').textContent = code;
+  const evts = PC_getEvents(); evts.unshift(newEvt); PC_saveEvents(evts);
+  document.getElementById('inviteCodeDisp').textContent = code;
   document.getElementById('generatedLink').textContent = location.href.replace('create.html','pay.html')+'?event='+id;
-  document.getElementById('s3').style.display = 'none';
-  document.getElementById('sSuccess').style.display = 'block';
-  renderSidebar();
+  goStep(3);
 }
 </script>
 </body>
