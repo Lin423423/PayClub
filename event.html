@@ -152,6 +152,7 @@ body{display:flex;}
     <a class="nav-item" href="dashboard.html"><span class="icon">🏠</span>總覽</a>
     <a class="nav-item" href="create.html"><span class="icon">➕</span>建立活動</a>
     <a class="nav-item" href="member.html"><span class="icon">🤝</span>加入活動</a>
+    <a class="nav-item" href="payment-methods.html"><span class="icon">💳</span>繳費方式管理</a>
     <a class="nav-item" href="report.html"><span class="icon">📊</span>財務報表</a>
     <div class="nav-section">我的活動</div>
     <div id="sidebarEvents"></div>
@@ -161,7 +162,7 @@ body{display:flex;}
   <div class="sidebar-bottom">
     <div class="user-card">
       <div class="avatar" id="avatarInitial">?</div>
-      <div class="user-info"><div class="user-name" id="userName">載入中</div><div class="user-role" id="userEmail" style="font-size:0.6rem;opacity:0.8">...</div></div>
+      <div class="user-info"><div class="user-name" id="userName">載入中</div><div class="user-email" id="userEmail">...</div></div>
       <button class="logout-btn" onclick="PC_logout()">登出</button>
     </div>
   </div>
@@ -245,19 +246,18 @@ body{display:flex;}
         <div class="sc-header">
           <div>
             <div class="sc-title">成員繳費狀態</div>
-            <div class="role-legend"><span class="badge badge-blue" style="font-size:0.65rem">繳費者</span><span class="badge badge-orange" style="font-size:0.65rem">統計者</span><span class="badge badge-green" style="font-size:0.65rem">管理員</span><span class="badge" style="background:linear-gradient(135deg,#fef3c7,#fde68a);color:#92400e;font-size:0.65rem">發起人</span></div>
+            <div class="filter-row" style="margin-top:8px;">
+              <button class="ftab active" id="role_all" onclick="switchRoleFilter('all')">全部身分</button>
+              <button class="ftab" id="role_payer" onclick="switchRoleFilter('payer')">繳費者</button>
+              <button class="ftab" id="role_counter" onclick="switchRoleFilter('counter')">統計者</button>
+              <button class="ftab" id="role_admin" onclick="switchRoleFilter('admin')">管理員</button>
+            </div>
           </div>
           <div class="filter-row">
             <button class="ftab active" id="filter_all" onclick="setFilter(this,'all')">全部</button>
             <button class="ftab" id="filter_paid" onclick="setFilter(this,'paid')">已繳</button>
             <button class="ftab" id="filter_pending" onclick="setFilter(this,'pending')">待繳</button>
             <button class="ftab" id="filter_overdue" onclick="setFilter(this,'overdue')">逾期</button>
-          </div>
-          <div class="filter-row" style="margin-top:8px;">
-            <button class="ftab active" id="role_all" onclick="switchRoleFilter('all')">全部身分</button>
-            <button class="ftab" id="role_payer" onclick="switchRoleFilter('payer')">繳費者</button>
-            <button class="ftab" id="role_counter" onclick="switchRoleFilter('counter')">統計者</button>
-            <button class="ftab" id="role_admin" onclick="switchRoleFilter('admin')">管理員</button>
           </div>
         </div>
         <div id="memberList"></div>
@@ -549,21 +549,23 @@ function renderPage(){
   const blocked=JSON.parse(localStorage.getItem('pc_blocked__'+eventId)||'[]');
   const blockedCount=blocked.length;
   
-  let actions='<button class="btn btn-ghost" onclick="renderPage()">🔄 更新</button>';
+  let actions='';
   if(isAdmin()){
-    actions+=`<button class="btn btn-ghost" onclick="toggleJoinPanel()">👥 加入申請${pending>0?` <span class="badge badge-orange" style="font-size:0.65rem;margin-left:2px">${pending}</span>`:''}</button>`;
-    actions+=`<button class="btn btn-ghost" onclick="toggleBlockPanel()">🚫 封鎖名單${blockedCount>0?` <span class="badge badge-red" style="font-size:0.65rem;margin-left:2px">${blockedCount}</span>`:''}</button>`;
     actions+=`<button class="btn btn-ghost" onclick="sendReminder()">📣 催款</button>`;
+    actions+=`<button class="btn btn-primary" onclick="openAdd()">+ 新增成員</button>`;
     actions+=`<div style="position:relative;display:inline-block;">
       <button class="btn btn-ghost" onclick="toggleActionMenu()" id="actionMenuBtn">⚙️ 設定</button>
       <div class="action-menu" id="actionMenu" style="display:none;">
+        <div class="action-menu-item" onclick="closeActionMenu();toggleJoinPanel()">👥 加入申請${pending>0?` <span class="badge badge-orange" style="font-size:0.65rem;margin-left:4px">${pending}</span>`:''}</div>
+        <div class="action-menu-item" onclick="closeActionMenu();toggleBlockPanel()">🚫 封鎖名單${blockedCount>0?` <span class="badge badge-red" style="font-size:0.65rem;margin-left:4px">${blockedCount}</span>`:''}</div>
+        <div style="height:1px;background:var(--border);margin:4px 0;"></div>
         ${isFounder()?`<div class="action-menu-item" onclick="closeActionMenu();openPaymentMethodsModal()">💳 繳費方式</div>`:''}
         <div class="action-menu-item" onclick="closeActionMenu();openAmtEdit()">💰 繳費金額更改</div>
         <div class="action-menu-item" onclick="closeActionMenu();location.href='report.html'">📄 報表</div>
-        <div class="action-menu-item" onclick="closeActionMenu();confirmDelete()" style="color:var(--red);border-top:1px solid var(--border);">🗑 刪除活動</div>
+        <div style="height:1px;background:var(--border);margin:4px 0;"></div>
+        <div class="action-menu-item" onclick="closeActionMenu();confirmDelete()" style="color:var(--red);">🗑 刪除活動</div>
       </div>
     </div>`;
-    actions+=`<button class="btn btn-primary" onclick="openAdd()">+ 新增成員</button>`;
   } else if(isCounter()){
     actions+=`<button class="btn btn-ghost" onclick="sendReminder()">📣 催款</button>`;
     actions+=`<button class="btn btn-ghost" onclick="location.href='report.html'">📄 報表</button>`;

@@ -272,11 +272,13 @@ function closeMethodDetail(){
 function toggleMethodActive(){
   if(currentMethodIndex < 0) return;
   const methods = getPayMethods();
+  if(!methods[currentMethodIndex]) return; // 防止 undefined
   methods[currentMethodIndex].active = !methods[currentMethodIndex].active;
+  const isActive = methods[currentMethodIndex].active;
   savePayMethods(methods);
   closeMethodDetail();
   renderMethods();
-  PC_toast(methods[currentMethodIndex].active ? '✅ 已啟用' : '⏸ 已停用');
+  PC_toast(isActive ? '✅ 已啟用' : '⏸ 已停用');
 }
 
 function confirmDeleteMethod(){
