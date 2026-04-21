@@ -150,3 +150,55 @@ function PC_copyText(text, msg){
 
 const ROLE_LABELS = {admin:'管理員', payer:'繳費者', observer:'觀察者', counter:'統計者'};
 const ROLE_BADGE  = {admin:'badge-green', payer:'badge-blue', observer:'badge-gray', counter:'badge-orange'};
+
+// ── 側邊欄填充函數 ──
+function PC_fillSidebar(activePage = ''){
+  const sidebarNav = document.querySelector('.sidebar-nav');
+  if(!sidebarNav) return; // 如果頁面沒有側邊欄就跳過
+  
+  const user = PC_getUser();
+  if(!user) return;
+  
+  // 生成側邊欄 HTML
+  let html = '';
+  
+  // 主選單
+  html += `<div class="nav-section">主選單</div>`;
+  html += `<a href="dashboard.html" class="nav-item ${activePage==='dashboard'?'active':''}">
+    <span class="icon">📊</span> 儀表板
+  </a>`;
+  html += `<a href="create.html" class="nav-item ${activePage==='create'?'active':''}">
+    <span class="icon">➕</span> 建立活動
+  </a>`;
+  html += `<a href="notifications.html" class="nav-item ${activePage==='notifications'?'active':''}">
+    <span class="icon">🔔</span> 通知
+    <span class="badge-notify" id="notifBadge" style="display:none"></span>
+  </a>`;
+  
+  // 管理選單
+  html += `<div class="nav-section">管理</div>`;
+  html += `<a href="payment-methods.html" class="nav-item ${activePage==='payment-methods'?'active':''}">
+    <span class="icon">💳</span> 繳費方式管理
+  </a>`;
+  html += `<a href="report.html" class="nav-item ${activePage==='report'?'active':''}">
+    <span class="icon">📄</span> 財務報表
+  </a>`;
+  
+  sidebarNav.innerHTML = html;
+}
+
+// ── 關閉側邊欄（手機版用）──
+function PC_closeSidebar(){
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('mobileOverlay');
+  if(sidebar) sidebar.classList.remove('open');
+  if(overlay) overlay.classList.remove('show');
+}
+
+// ── 開啟側邊欄（手機版用）──
+function PC_openSidebar(){
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('mobileOverlay');
+  if(sidebar) sidebar.classList.add('open');
+  if(overlay) overlay.classList.add('show');
+}

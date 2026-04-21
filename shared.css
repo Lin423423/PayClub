@@ -143,3 +143,29 @@ textarea.form-input{resize:vertical;}
 .dash-filter-btn { background:transparent; border:none; padding:5px 14px; font-size:0.78rem; font-weight:600; color:var(--text2); border-radius:6px; cursor:pointer; transition:all 0.15s; font-family:'Noto Sans TC',sans-serif; }
 .dash-filter-btn:hover { color:var(--text); }
 .dash-filter-btn.active { background:var(--white); color:var(--accent); box-shadow:var(--shadow); }
+
+/* ── 修正郵件過長時的顯示 ── */
+.user-email {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.sidebar-user .user-email,
+.user-card .user-email {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.user-info .user-email {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
