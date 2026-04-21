@@ -405,7 +405,7 @@ PC_fillSidebarUser();
 const params=new URLSearchParams(location.search);
 const eventId=params.get('id');
 if(!eventId)location.href='dashboard.html';
-let evt=null,cf='all',joinPanelOpen=false;
+let evt=null,cf='all',roleFilter='all',joinPanelOpen=false;
 let pendingApproveIdx=-1,pendingStatusIdx=-1,pendingDeleteIdx=-1,pendingRoleIdx=-1,selectedStatus='paid';
 let amtSelections=new Set();
 
@@ -771,8 +771,6 @@ function renderMembers(){
 }
 
 function toggleMDetail(id){const el=document.getElementById(id);if(el)el.classList.toggle('open');}
-let cf='all'; // 繳費狀態篩選
-let roleFilter='all'; // 身分篩選
 function setFilter(el,f){cf=f;document.querySelectorAll('.ftab[id^="filter_"]').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderMembers();}
 function switchRoleFilter(f){roleFilter=f;document.querySelectorAll('.ftab[id^="role_"]').forEach(b=>b.classList.remove('active'));document.getElementById('role_'+f).classList.add('active');renderMembers();}
 
