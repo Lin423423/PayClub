@@ -1281,7 +1281,22 @@ function confirmStatus(){
     if(!m.paidAt)m.paidAt=now;
     m.txId=txId;
     if(!m.txHistory)m.txHistory=[];
-    if(!m.txHistory.find(t=>t.txId===txId)){m.txHistory.push({txId,amount:PC_getExpectedAmount(evt,m),time:now,method:m.payMethod||'手動標記',remark:m.remark||''});}
+    
+    // 計算剩餘待繳金額（總應繳 - 已繳總額）
+    const expectedAmt = PC_getExpectedAmount(evt, m);
+    const paidTotal = (m.txHistory || []).reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+    const remainingAmt = expectedAmt - paidTotal;
+    
+    // 只在有剩餘金額時才添加新的繳費記錄
+    if(remainingAmt > 0 && !m.txHistory.find(t=>t.txId===txId)){
+      m.txHistory.push({
+        txId,
+        amount: remainingAmt,  // 使用剩餘待繳金額，而非總應繳金額
+        time: now,
+        method: m.payMethod || '手動標記',
+        remark: m.remark || ''
+      });
+    }
   }
   PC_saveEvents(evts);
   PC_sendNotify(m.email,'繳費狀態已更新 ⚙️',`你在「${evt.title}」的狀態已由「${oldStatus}」更新為「${selectedStatus==='paid'?'已繳費':selectedStatus==='overdue'?'逾期未繳':'待繳費'}」。`,'info');
