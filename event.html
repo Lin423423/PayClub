@@ -703,12 +703,14 @@ function renderMembers(){
       if (targetMember) {
         const expectedAmt = PC_getExpectedAmount(evt, targetMember);
         const paidTotal = (targetMember.txHistory || []).reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
-        const hasPendingAmount = paidTotal < expectedAmt;
+        const remainingAmt = expectedAmt - paidTotal;
         
-        if (targetMember.status === 'paid' && !hasPendingAmount) {
+        if (targetMember.status === 'paid' && remainingAmt <= 0) {
           amt = '—'; // 已繳清，不顯示金額
+        } else if (remainingAmt > 0) {
+          amt = '$' + remainingAmt; // 顯示剩餘待繳金額
         } else {
-          amt = '$' + expectedAmt;
+          amt = '—';
         }
       }
     }
@@ -1316,17 +1318,22 @@ function saveAmtEdit(){
   (e.members||[]).forEach((m,i)=>{
     const inp=document.getElementById('amt_'+i);
     if(inp){
-      const oldAmt=m.customAmount;
       const newAmt=inp.value===''?null:parseFloat(inp.value)||0;
-      if(newAmt!==null && newAmt!==oldAmt){
-        // 累加邏輯：如果已有金額則累加，否則設定新金額
+      if(newAmt!==null && newAmt!==0){
+        // 累加邏輯：增加應繳金額
         if(m.customAmount===null || m.customAmount===undefined){
           m.customAmount=newAmt; // 第一次設定
         } else {
           m.customAmount+=newAmt; // 累加
         }
-        // Reset paid status if amount changed — keep tx history but set pending
-        if(m.status==='paid'){m.status='pending';/* keep paidAt and history */}
+        
+        // 如果成員是已繳費狀態，改為待繳費（因為還有新的金額要繳）
+        // 重要：不要修改 txHistory，保留原有繳費記錄
+        if(m.status==='paid'){
+          m.status='pending'; // 改為待繳費
+          // 保留 paidAt 和 txHistory，不做任何修改
+        }
+        
         if(m.email)PC_sendNotify(m.email,'繳費金額已更新 💰',`你在「${evt.title}」的應繳金額已更新為 $${m.customAmount!=null?m.customAmount:e.amount}。請重新完成繳費。`,'info');
       }
     }
