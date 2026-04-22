@@ -145,10 +145,25 @@ body{display:flex;}
     </div>
 
     <div class="detail-actions">
-      <button class="btn btn-ghost" style="flex:1" onclick="toggleMethodActive()">
+      <button class="btn btn-ghost" style="flex:1;justify-content:center;" onclick="toggleMethodActive()">
         <span id="toggleActiveText">停用此方式</span>
       </button>
-      <button class="btn btn-danger" style="flex:1" id="deleteMethodBtn" onclick="confirmDeleteMethod()">刪除</button>
+      <button class="btn btn-danger" style="flex:1;justify-content:center;" id="deleteMethodBtn" onclick="confirmDeleteMethod()">🗑 刪除繳費方式</button>
+    </div>
+  </div>
+</div>
+
+<!-- 刪除繳費方式確認 Modal -->
+<div class="overlay" id="delMethodOverlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal" style="max-width:360px;text-align:center;">
+    <div style="font-size:2rem;margin-bottom:8px">🗑</div>
+    <div class="modal-title">刪除繳費方式？</div>
+    <div style="background:var(--red-light);border:1px solid #fecaca;border-radius:10px;padding:12px 14px;margin-bottom:4px;font-size:0.84rem;color:var(--red);">
+      確定要刪除「<span id="delMethodName"></span>」？此操作無法復原。
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="flex:1;justify-content:center;" onclick="document.getElementById('delMethodOverlay').classList.remove('show')">取消</button>
+      <button class="btn btn-danger" style="flex:2;justify-content:center;" onclick="doDeleteMethod()">確認刪除</button>
     </div>
   </div>
 </div>
@@ -253,12 +268,16 @@ function showMethodDetail(index){
   document.getElementById('detailMethodType').textContent = method.isDefault ? '第三方支付' : '自訂方式';
   document.getElementById('toggleActiveText').textContent = method.active ? '停用此方式' : '啟用此方式';
   
-  // 系統預設方式不能刪除
+  // 系統預設方式不能刪除 → 顯示為禁用
   const delBtn = document.getElementById('deleteMethodBtn');
   if(method.isDefault){
-    delBtn.style.display = 'none';
+    delBtn.disabled = true;
+    delBtn.style.opacity = '0.4';
+    delBtn.style.cursor = 'not-allowed';
   } else {
-    delBtn.style.display = 'block';
+    delBtn.disabled = false;
+    delBtn.style.opacity = '1';
+    delBtn.style.cursor = 'pointer';
   }
   
   document.getElementById('methodDetailOverlay').classList.add('show');
@@ -285,14 +304,19 @@ function confirmDeleteMethod(){
   if(currentMethodIndex < 0) return;
   const methods = getPayMethods();
   const method = methods[currentMethodIndex];
-  
-  if(confirm('確定要刪除「'+method.name+'」？\n此操作無法復原。')){
-    methods.splice(currentMethodIndex, 1);
-    savePayMethods(methods);
-    closeMethodDetail();
-    renderMethods();
-    PC_toast('🗑 已刪除');
-  }
+  if(method.isDefault){PC_toast('⚠️ 系統預設方式無法刪除');return;}
+  document.getElementById('delMethodName').textContent = method.name;
+  document.getElementById('delMethodOverlay').classList.add('show');
+}
+
+function doDeleteMethod(){
+  const methods = getPayMethods();
+  methods.splice(currentMethodIndex, 1);
+  savePayMethods(methods);
+  document.getElementById('delMethodOverlay').classList.remove('show');
+  closeMethodDetail();
+  renderMethods();
+  PC_toast('🗑 已刪除');
 }
 
 function openAddMethod(){

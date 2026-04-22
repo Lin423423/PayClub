@@ -365,6 +365,10 @@ function deleteBulk(){
 
   selIds.clear();
   document.getElementById('bulkBar').style.display='none';
+  // 自動退出選取模式
+  selMode=false;
+  document.getElementById('selBtn').textContent='☑ 選取';
+  document.getElementById('selBtn').className='btn btn-ghost';
   renderAll();
   PC_toast('✅ 已處理 '+n+' 個活動');
 }

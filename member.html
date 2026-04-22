@@ -188,9 +188,19 @@ function joinEvent(){
   
   // 檢查是否被封鎖
   const blockKey='pc_blocked__'+result.event.id;
-  const blocked=JSON.parse(localStorage.getItem(blockKey)||'[]');
-  if(blocked.find(b=>b.email===user.email)){
-    PC_toast('❌ 你已被此活動封鎖，無法加入');
+  const blockedList=JSON.parse(localStorage.getItem(blockKey)||'[]');
+  if(blockedList.find(b=>b.email===user.email)){
+    errEl.textContent='❌ 你已被此活動的發起人封鎖，無法加入';
+    errEl.style.display='block';
+    return;
+  }
+  
+  // 檢查是否已被拒絕
+  const allReqs=PC_getJoinRequests(result.event.id);
+  const myPrevReq=allReqs.find(r=>r.email===user.email);
+  if(myPrevReq&&myPrevReq.status==='rejected'){
+    errEl.textContent='❌ 你的申請已被此活動拒絕，如有疑問請聯繫管理員';
+    errEl.style.display='block';
     return;
   }
   
@@ -222,7 +232,45 @@ function removeAllDeleted(){
 }
 
 function renderJoined(){
-  const joined=getMemberJoined();
+  // ── 自動處理被拒絕 / 被封鎖的活動 ──
+  let joined=getMemberJoined();
+  let changed=false;
+  joined=joined.filter((j)=>{
+    const result=PC_findEventById(j.eventId);
+    if(!result) return true; // 活動已刪除，保留讓使用者看到「已刪除」提示
+    const evt=result.event;
+
+    // 檢查封鎖
+    const blocked=JSON.parse(localStorage.getItem('pc_blocked__'+j.eventId)||'[]');
+    const isBlocked=blocked.find(b=>b.email===user.email);
+    if(isBlocked){
+      // 發通知（只發一次，用 localStorage flag 避免重複）
+      const flagKey='pc_block_notif__'+j.eventId+'__'+user.email;
+      if(!localStorage.getItem(flagKey)){
+        PC_sendNotify(user.email,'你已被封鎖 🚫',`你已被「${evt.title}」的活動發起人封鎖，已自動退出活動。`,'warning');
+        localStorage.setItem(flagKey,'1');
+      }
+      changed=true;
+      return false; // 自動移除
+    }
+
+    // 檢查拒絕
+    const reqs=PC_getJoinRequests(j.eventId);
+    const myReq=reqs.find(r=>r.email===user.email);
+    if(myReq&&myReq.status==='rejected'){
+      const flagKey='pc_reject_notif__'+j.eventId+'__'+user.email;
+      if(!localStorage.getItem(flagKey)){
+        PC_sendNotify(user.email,'申請已被拒絕 ❌',`你加入「${evt.title}」的申請已被拒絕，已自動退出活動。如有疑問請聯繫活動管理員。`,'warning');
+        localStorage.setItem(flagKey,'1');
+      }
+      changed=true;
+      return false; // 自動移除
+    }
+
+    return true;
+  });
+  if(changed) saveMemberJoined(joined);
+
   const emptyEl=document.getElementById('emptyState');
   const titleEl=document.getElementById('joinedTitle');
   const container=document.getElementById('joinedEvents');

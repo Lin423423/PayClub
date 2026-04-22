@@ -157,7 +157,7 @@ tbody tr:last-child td{border-bottom:none;}
 
   <div class="table-card">
     <div class="table-header"><div class="table-title">收款明細</div></div>
-    <table><thead><tr><th>成員</th><th>活動</th><th>角色</th><th>金額</th><th>繳費時間</th><th>狀態</th></tr></thead>
+    <table><thead><tr><th>成員</th><th>活動</th><th>角色</th><th>應繳金額</th><th>已繳金額</th><th>最後繳費時間</th><th>狀態</th></tr></thead>
     <tbody id="detailBody"><tr><td colspan="6" style="text-align:center;padding:28px;color:var(--text3);">請選擇活動</td></tr></tbody></table>
   </div>
 </main>
@@ -291,13 +291,39 @@ function renderReport(){
   const rows=[];
   evts.forEach(e=>(e.members||[]).forEach(m=>rows.push({e,m})));
   document.getElementById('detailBody').innerHTML=rows.map(({e,m})=>{
-    const amt=m.role==='payer'?'$'+PC_getExpectedAmount(e,m):'—';
-    const st=m.role!=='payer'?'badge-gray':(m.status==='paid'?'badge-green':m.status==='overdue'?'badge-red':'badge-orange');
-    const stTxt=m.role!=='payer'?({counter:'統計者',observer:'觀察者'}[m.role]||'—'):(m.status==='paid'?'已繳費':m.status==='overdue'?'逾期未繳':'待繳費');
-    const roleBadge=m.role==='payer'?'badge-blue':m.role==='counter'?'badge-orange':'badge-gray';
-    const roleTxt=m.role==='payer'?'繳費者':m.role==='counter'?'統計者':'觀察者';
-    return `<tr><td style="font-weight:600">${m.name||'—'}</td><td style="color:var(--text2)">${e.title}</td><td><span class="badge ${roleBadge}">${roleTxt}</span></td><td style="font-weight:700">${amt}</td><td style="color:var(--text3)">${m.paidAt||'—'}</td><td><span class="badge ${st}">${stTxt}</span></td></tr>`;
-  }).join('')||'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3);">無資料</td></tr>';
+    const roles=Array.isArray(m.roles)?m.roles:(m.role?[m.role]:[]);
+    const isPayer=roles.includes('payer');
+    const expectedAmt=isPayer?'$'+PC_getExpectedAmount(e,m):'—';
+    // 計算實際已繳金額（支援多次繳費）
+    const txHistory=m.txHistory||[];
+    const paidTotal=txHistory.reduce((s,tx)=>s+(Number(tx.amount)||0),0);
+    const paidAmt=isPayer?(paidTotal>0?'$'+paidTotal.toLocaleString():'$0'):'—';
+    // 狀態
+    let st,stTxt;
+    if(!isPayer){
+      st='badge-gray';
+      stTxt=roles.includes('counter')?'統計者':roles.includes('admin')?'管理員':'觀察者';
+    } else {
+      st=m.status==='paid'?'badge-green':m.status==='overdue'?'badge-red':'badge-orange';
+      stTxt=m.status==='paid'?'已繳費':m.status==='overdue'?'逾期未繳':'待繳費';
+    }
+    // 角色 badge（顯示第一個主要身分）
+    const mainRole=roles[0]||'payer';
+    const roleBadge=mainRole==='payer'?'badge-blue':mainRole==='counter'?'badge-orange':mainRole==='admin'?'badge-green':'badge-gray';
+    const roleTxt=mainRole==='payer'?'繳費者':mainRole==='counter'?'統計者':mainRole==='admin'?'管理員':'觀察者';
+    // 最後繳費時間（取 txHistory 最後一筆）
+    const lastTx=txHistory.length?txHistory[txHistory.length-1]:null;
+    const paidAt=lastTx?lastTx.paidAt||lastTx.time||(m.paidAt||'—'):(m.paidAt||'—');
+    return `<tr>
+      <td style="font-weight:600">${m.name||m.email||'—'}</td>
+      <td style="color:var(--text2)">${e.title}</td>
+      <td><span class="badge ${roleBadge}">${roleTxt}</span></td>
+      <td style="font-weight:700">${expectedAmt}</td>
+      <td style="font-weight:700;color:var(--green)">${paidAmt}</td>
+      <td style="color:var(--text3);font-size:0.78rem">${paidAt}</td>
+      <td><span class="badge ${st}">${stTxt}</span></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3);">無資料</td></tr>';
 }
 
 function showPdf(){
