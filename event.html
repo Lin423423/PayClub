@@ -358,7 +358,7 @@ body{display:flex;}
 <div class="overlay" id="amtOverlay">
   <div class="modal">
     <div class="modal-title">💰 修改繳費金額</div>
-    <div class="modal-sub">選擇成員批次設定，留空使用活動預設（$<span id="defaultAmtText">0</span>）<br><small style="color:var(--orange)">⚠️ 修改金額後，若成員已繳費，原繳費記錄保留，新金額為下次應繳金額。</small></div>
+    <div class="modal-sub">選擇成員批次設定，留空使用活動預設（$<span id="defaultAmtText">0</span>）<br><small style="color:var(--orange)">⚠️ 修改金額後，新金額為總應繳金額，若成員已繳費，原繳費記錄保留。</small></div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
       <div class="amt-check" id="selectAllCheck" onclick="toggleSelectAll()"></div>
       <span style="font-size:0.82rem;font-weight:600;cursor:pointer" onclick="toggleSelectAll()">全選</span>
