@@ -355,6 +355,19 @@ body{display:flex;}
   </div>
 </div>
 
+<!-- 通用確認 MODAL -->
+<div class="overlay" id="confirmOverlay">
+  <div class="modal" style="max-width:380px;text-align:center;">
+    <div style="font-size:2.2rem;margin-bottom:8px" id="confirmIcon">⚠️</div>
+    <div class="modal-title" id="confirmTitle"></div>
+    <div class="modal-sub" id="confirmBody" style="margin-top:8px;line-height:1.6;"></div>
+    <div class="modal-actions" style="margin-top:20px;">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeOverlay('confirmOverlay')">取消</button>
+      <button class="btn btn-danger" style="flex:2" id="confirmOkBtn">確定</button>
+    </div>
+  </div>
+</div>
+
 <!-- AMOUNT EDIT MODAL -->
 <div class="overlay" id="amtOverlay">
   <div class="modal">
@@ -467,6 +480,17 @@ function renderSidebar(){
 }
 
 function closeOverlay(id){document.getElementById(id).classList.remove('show');}
+
+// ── 通用確認對話框 ──
+function showConfirm(title, body, onConfirm, btnClass='btn-danger'){
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmBody').innerHTML=body;
+  const btn=document.getElementById('confirmOkBtn');
+  btn.className='btn '+btnClass;
+  btn.style.flex='2';
+  btn.onclick=()=>{closeOverlay('confirmOverlay');onConfirm();};
+  document.getElementById('confirmOverlay').classList.add('show');
+}
 ['addOverlay','approveOverlay','roleOverlay','statusOverlay','deleteOverlay','amtOverlay'].forEach(id=>{
   document.getElementById(id).addEventListener('click',function(e){if(e.target===this)closeOverlay(id);});
 });
@@ -1464,10 +1488,16 @@ function confirmDeleteTx(){
   const selected=Array.from(document.querySelectorAll('.tx-check:checked')).map(cb=>parseInt(cb.dataset.idx));
   if(selected.length===0){PC_toast('❌ 請選擇要刪除的記錄');return;}
   
-  if(!confirm(`確定要刪除 ${selected.length} 筆繳費記錄嗎？\n\n此操作無法復原，實收金額也會相應減少。`)){
-    return;
-  }
-  
+  showConfirm(
+    '🗑 刪除繳費記錄',
+    `確定要刪除 ${selected.length} 筆繳費記錄嗎？<br><br>此操作無法復原，實收金額也會相應減少。`,
+    ()=>{
+      doDeleteTx(selected);
+    }
+  );
+}
+
+function doDeleteTx(selected){
   const evts=PC_getEvents();
   const e=evts.find(x=>x.id===eventId);
   const m=e.members[pendingDeleteTxIdx];
@@ -1599,19 +1629,20 @@ function closeActionMenu(){
 
 // ── 刪除活動 ──
 function confirmDeleteEvent(){
-  if(!confirm('⚠️ 確定要刪除此活動嗎？\n\n刪除後將無法復原，所有成員資料和繳費記錄都會消失。')){
-    return;
-  }
-  const evts=PC_getEvents();
-  const filtered=evts.filter(e=>e.id!==eventId);
-  PC_saveEvents(filtered);
-  
-  // 清除相關數據
-  localStorage.removeItem('pc_join_req__'+eventId);
-  localStorage.removeItem('pc_blocked__'+eventId);
-  
-  PC_toast('✅ 活動已刪除');
-  setTimeout(()=>location.href='dashboard.html',800);
+  showConfirm(
+    '🗑 刪除活動',
+    '確定要刪除此活動嗎？<br><br>刪除後將無法復原，所有成員資料和繳費記錄都會消失。',
+    ()=>{
+      const evts=PC_getEvents();
+      const filtered=evts.filter(e=>e.id!==eventId);
+      PC_saveEvents(filtered);
+      localStorage.removeItem('pc_join_req__'+eventId);
+      localStorage.removeItem('pc_blocked__'+eventId);
+      PC_toast('✅ 活動已刪除');
+      setTimeout(()=>location.href='dashboard.html',800);
+    },
+    'btn-danger'
+  );
 }
 
 // ── 加入申請彈窗 ──
