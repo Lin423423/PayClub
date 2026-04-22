@@ -762,14 +762,16 @@ function renderMembers(){
       
       opsHtml=`<div class="m-ops">
         <span style="font-size:0.76rem;color:var(--text3)">活動發起人</span>
-        ${!founderIsPayer 
-          ? `<button class="op-btn op-role" onclick="event.stopPropagation();addFounderAsPayer()">+ 加入繳費者</button>` 
-          : `<button class="op-btn op-del" onclick="event.stopPropagation();removeFounderFromPayer()">− 移除繳費者</button>`
-        }
-        ${founderIsPayer && founderIndex >= 0 
-          ? `<button class="op-btn op-status" onclick="event.stopPropagation();openStatusModal(${founderIndex})">調整狀態</button>` 
-          : ''
-        }
+        <button class="op-btn" style="padding:4px 12px;background:var(--surface);border-color:var(--border);color:var(--text2);" onclick="event.stopPropagation();toggleFounderMenu()">⚙️</button>
+        <div class="member-settings-menu" id="founderMenu" style="display:none;">
+          ${founderIsPayer && founderIndex >= 0 ? `<div class="menu-item" onclick="event.stopPropagation();closeFounderMenu();openManualPaymentModal(${founderIndex})">💰 手動記帳</div>` : ''}
+          ${founderIsPayer && founderIndex >= 0 ? `<div class="menu-item" onclick="event.stopPropagation();closeFounderMenu();openDeleteTxModal(${founderIndex})">🗑 刪除繳費記錄</div>` : ''}
+          ${founderIsPayer && founderIndex >= 0 ? `<div style="height:1px;background:var(--border);margin:4px 0;"></div>` : ''}
+          ${!founderIsPayer
+            ? `<div class="menu-item" onclick="event.stopPropagation();closeFounderMenu();addFounderAsPayer()">➕ 加入繳費者</div>`
+            : `<div class="menu-item" style="color:var(--red);" onclick="event.stopPropagation();closeFounderMenu();removeFounderFromPayer()">✕ 移除繳費者</div>`
+          }
+        </div>
       </div>`;
     }
 
@@ -1566,6 +1568,24 @@ function toggleMemberMenu(index){
 }
 function closeMemberMenu(index){
   document.getElementById('menu_'+index).style.display='none';
+}
+
+// ── 發起人設定選單 ──
+function toggleFounderMenu(){
+  const menu=document.getElementById('founderMenu');
+  const btn=event.target.closest('.op-btn');
+  const isOpen=menu.style.display==='block';
+  document.querySelectorAll('.member-settings-menu').forEach(m=>m.style.display='none');
+  if(!isOpen && btn){
+    const rect=btn.getBoundingClientRect();
+    menu.style.top=(rect.bottom+4)+'px';
+    menu.style.left=(rect.right-140)+'px';
+    menu.style.display='block';
+  }
+}
+function closeFounderMenu(){
+  const menu=document.getElementById('founderMenu');
+  if(menu) menu.style.display='none';
 }
 
 // ── Action 設定選單 ──
