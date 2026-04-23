@@ -444,7 +444,7 @@ function renderEvents(){
 
     // 身分 badge
     const roleBadgeColor = isOwner?'badge-founder':primaryRole==='admin'?'badge-green':primaryRole==='counter'?'badge-orange':'badge-blue';
-    const roleBadgeText = isOwner?'主辦人':(myRole||'成員');
+    const roleBadgeText = isOwner?'發起人':(myRole||'成員');
     
     // 選取模式判斷
     const isSel = selIds.has(e.id);
