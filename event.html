@@ -624,8 +624,9 @@ function renderPage(){
 
   const payers=PC_getPayers(evt);
   const paid=payers.filter(m=>m.status==='paid').length;
-  const pend=payers.filter(m=>m.status==='pending').length;
-  const ovd=payers.filter(m=>m.status==='overdue').length;
+  // 待繳只計算應繳金額 > 0 的成員
+  const pend=payers.filter(m=>m.status==='pending'&&PC_getExpectedAmount(evt,m)>0).length;
+  const ovd=payers.filter(m=>m.status==='overdue'&&PC_getExpectedAmount(evt,m)>0).length;
   const pct=payers.length?Math.round(paid/payers.length*100):0;
   const c=PC_getCollected(evt),e=PC_getExpected(evt);
   document.getElementById('sC').textContent='$'+c.toLocaleString();
@@ -757,12 +758,13 @@ function renderMembers(){
       }
     }
 
-    // Status badge — 只有繳費者才顯示繳費狀態
+    // Status badge — 只有繳費者且應繳金額 > 0 才顯示繳費狀態
     let bc,bt;
+    const expectedAmt=PC_getExpectedAmount(evt,m);
     if(isFounderRow){bc='badge-founder';bt='發起人';}
     else if(isInvite){bc='badge-orange';bt='未加入';}
-    else if(isPay){bc=m.status==='paid'?'badge-green':m.status==='overdue'?'badge-red':'badge-orange';bt=m.status==='paid'?'已繳費':m.status==='overdue'?'逾期':'待繳費';}
-    else{bc='';bt='';} // 管理員、統計者不顯示狀態 badge
+    else if(isPay&&expectedAmt>0){bc=m.status==='paid'?'badge-green':m.status==='overdue'?'badge-red':'badge-orange';bt=m.status==='paid'?'已繳費':m.status==='overdue'?'逾期':'待繳費';}
+    else{bc='';bt='';} // 管理員、統計者、應繳金額為0的繳費者不顯示狀態
 
     const detailId='md_'+ri+'_'+m.email.replace('@','_');
     const canClick=isAdmin()||isCounter();
@@ -782,23 +784,18 @@ function renderMembers(){
       </div>`;
     }
     if(isFounderRow&&isFounder()){
-      // Check if founder is already a payer in members list
       const founderMember = (evt.members||[]).find(m=>m.email===user.email);
       const founderIsPayer = founderMember && getRoles(founderMember).includes('payer');
       const founderIndex = founderMember ? (evt.members||[]).indexOf(founderMember) : -1;
-      
+
       opsHtml=`<div class="m-ops">
         <span style="font-size:0.76rem;color:var(--text3)">活動發起人</span>
+        ${founderIsPayer && founderIndex >= 0 ? `
         <button class="op-btn" style="padding:4px 12px;background:var(--surface);border-color:var(--border);color:var(--text2);" onclick="event.stopPropagation();toggleFounderMenu()">⚙️</button>
         <div class="member-settings-menu" id="founderMenu" style="display:none;">
-          ${founderIsPayer && founderIndex >= 0 ? `<div class="menu-item" onclick="event.stopPropagation();closeFounderMenu();openManualPaymentModal(${founderIndex})">💰 手動記帳</div>` : ''}
-          ${founderIsPayer && founderIndex >= 0 ? `<div class="menu-item" onclick="event.stopPropagation();closeFounderMenu();openDeleteTxModal(${founderIndex})">🗑 刪除繳費記錄</div>` : ''}
-          ${founderIsPayer && founderIndex >= 0 ? `<div style="height:1px;background:var(--border);margin:4px 0;"></div>` : ''}
-          ${!founderIsPayer
-            ? `<div class="menu-item" onclick="event.stopPropagation();closeFounderMenu();addFounderAsPayer()">➕ 加入繳費者</div>`
-            : `<div class="menu-item" style="color:var(--red);" onclick="event.stopPropagation();closeFounderMenu();removeFounderFromPayer()">✕ 移除繳費者</div>`
-          }
-        </div>
+          <div class="menu-item" onclick="event.stopPropagation();closeFounderMenu();openManualPaymentModal(${founderIndex})">💰 手動記帳</div>
+          <div class="menu-item" onclick="event.stopPropagation();closeFounderMenu();openDeleteTxModal(${founderIndex})">🗑 刪除繳費記錄</div>
+        </div>` : ''}
       </div>`;
     }
 
