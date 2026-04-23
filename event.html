@@ -254,7 +254,7 @@ body{display:flex;}
             <div class="sc-title">成員繳費狀態</div>
             <div class="filter-row" style="margin-top:8px;">
               <button class="ftab active" id="role_all" onclick="switchRoleFilter('all')">全部身分</button>
-              <button class="ftab" id="role_payer" onclick="switchRoleFilter('payer')">繳費者</button>
+              <button class="ftab" id="role_payer" onclick="switchRoleFilter('payer')">成員</button>
               <button class="ftab" id="role_counter" onclick="switchRoleFilter('counter')">統計者</button>
               <button class="ftab" id="role_admin" onclick="switchRoleFilter('admin')">管理員</button>
             </div>
@@ -810,7 +810,7 @@ function renderMembers(){
       <div class="member-row" onclick="${canClick?`toggleMDetail('${detailId}')`:''}" style="${!canClick?'cursor:default':''}">
         <div class="m-av" style="background:${RC[primaryRole]||'#9ca3af'}">${(m.email||m.name||'?').slice(0,1).toUpperCase()}</div>
         <div class="m-info">
-          <div class="m-name-row">${m.email||m.name||'—'} ${roles.map(r=>`<span class="badge ${RB[r]||'badge-gray'}" style="font-size:0.63rem;padding:1px 6px">${RL[r]||r}</span>`).join('')}</div>
+          <div class="m-name-row">${m.email||m.name||'—'} ${isFounderRow?`<span class="badge badge-founder" style="font-size:0.63rem;padding:1px 6px">發起人</span>`:''}</div>
           <div class="m-sub">${m.paidAt||'—'}${m.payMethod?' via '+m.payMethod:''}</div>
         </div>
         <div class="m-amount">${amt}</div>
@@ -1614,10 +1614,20 @@ function confirmDelete(){
 
 // ── Amount edit ──
 function openAmtEdit(){
-  const payers=PC_getPayers(evt);document.getElementById('defaultAmtText').textContent=evt.amount||0;amtSelections=new Set();document.getElementById('selectAllCheck').classList.remove('checked');
-  document.getElementById('amtList').innerHTML=payers.length
-    ?payers.map(m=>{const ri=(evt.members||[]).indexOf(m);const totalExpected=PC_getExpectedAmount(evt,m);return `<div class="amt-member-row"><div class="amt-check" id="amtck_${ri}" onclick="toggleAmtSel(${ri},this)"></div><span style="flex:1;font-size:0.86rem;font-weight:600">${m.email||m.name||'—'}</span><span style="font-size:0.78rem;color:var(--text3);margin-right:8px">總應繳：$${totalExpected}</span><input type="number" class="form-input" id="amt_${ri}" value="" placeholder="${totalExpected}" min="0" style="width:110px;padding:7px 10px;font-size:0.85rem" onkeydown="if(event.key==='Enter')saveAmtEdit()"></div>`;}).join('')
-    :'<div style="color:var(--text3);text-align:center;padding:16px;font-size:0.85rem">目前沒有繳費者</div>';
+  // 所有成員（含發起人）都可調整金額
+  const allMembersForAmt = (evt.members||[]);
+  // 加上發起人（若不在 members 中）
+  let amtList = [...allMembersForAmt];
+  const founderInMembers = amtList.find(m=>m.email===evt.ownerEmail);
+  if(!founderInMembers && evt.ownerEmail){
+    amtList = [{email:evt.ownerEmail, name:evt.ownerEmail.split('@')[0], roles:['payer'], customAmount:null, _synthetic:true}, ...amtList];
+  }
+  document.getElementById('defaultAmtText').textContent=evt.amount||0;
+  amtSelections=new Set();
+  document.getElementById('selectAllCheck').classList.remove('checked');
+  document.getElementById('amtList').innerHTML=amtList.length
+    ?amtList.map(m=>{const ri=(evt.members||[]).indexOf(m);const totalExpected=PC_getExpectedAmount(evt,m);return `<div class="amt-member-row"><div class="amt-check" id="amtck_${ri}" onclick="toggleAmtSel(${ri},this)"></div><span style="flex:1;font-size:0.86rem;font-weight:600">${m.email||m.name||'—'}${m.email===evt.ownerEmail?' <span class=\'badge badge-founder\' style=\'font-size:0.6rem\'>發起人</span>':''}</span><span style="font-size:0.78rem;color:var(--text3);margin-right:8px">總應繳：$${totalExpected}</span><input type="number" class="form-input" id="amt_${ri}" value="" placeholder="${totalExpected||0}" min="0" style="width:110px;padding:7px 10px;font-size:0.85rem" onkeydown="if(event.key===\'Enter\')saveAmtEdit()"></div>`;}).join('')
+    :'<div style="color:var(--text3);text-align:center;padding:16px;font-size:0.85rem">目前沒有成員</div>';
   document.getElementById('amtOverlay').classList.add('show');
 }
 function toggleAmtSel(ri,el){if(amtSelections.has(ri)){amtSelections.delete(ri);el.classList.remove('checked');}else{amtSelections.add(ri);el.classList.add('checked');}updateSelectAll();}
