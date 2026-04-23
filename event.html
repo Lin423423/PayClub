@@ -1651,8 +1651,8 @@ function saveAmtEdit(){
   // 處理發起人（ri=-1 的特殊情況）
   const founderInp=document.getElementById('amt_-1');
   if(founderInp){
-    const newAmt=founderInp.value===''?null:parseFloat(founderInp.value)||0;
-    if(newAmt!==null){
+    const newAmt=founderInp.value===''?null:parseFloat(founderInp.value)||null;
+    if(newAmt!==null && newAmt>0){
       let founderM=e.members.find(m=>m.email===e.ownerEmail);
       if(!founderM){
         // 發起人不在 members，新增一筆
@@ -1669,8 +1669,8 @@ function saveAmtEdit(){
   (e.members||[]).forEach((m,i)=>{
     const inp=document.getElementById('amt_'+i);
     if(inp){
-      const newAmt=inp.value===''?null:parseFloat(inp.value)||0;
-      if(newAmt!==null && newAmt!==0){
+      const newAmt=inp.value===''?null:parseFloat(inp.value)||null;
+      if(newAmt!==null && newAmt>0){
         // 覆蓋模式：直接設定新的應繳金額
         m.customAmount = newAmt;  // 直接覆蓋，不累加
         

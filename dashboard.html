@@ -443,14 +443,15 @@ function renderEvents(){
     const isSel = selIds.has(e.id);
     // 只有自己建立的活動才可選取
     const canSelect = selMode && isOwner;
-    const oc = canSelect ? `toggleCard('${e.id}',event)` : `location.href='event.html?id=${e.id}'`;
+    const isBlocked = selMode && !isOwner; // 選取模式下已加入的活動
+    const oc = canSelect ? `toggleCard('${e.id}',event)` : isBlocked ? `event.preventDefault()` : `location.href='event.html?id=${e.id}'`;
+    const cardStyle = isBlocked ? 'cursor:not-allowed;opacity:0.6;' : '';
 
-    return `<div class="event-card ${isSel?'selected':''}" onclick="${oc}">
+    return `<div class="event-card ${isSel?'selected':''}" onclick="${oc}" style="${cardStyle}">
       ${canSelect ? `<div class="ec-check${isSel?' checked':''}">${isSel?'✓':''}</div>` : ''}
       <div class="ec-top" style="${canSelect?'padding-left:26px':''}">
         <div class="ec-title">${e.title}${pending>0&&isOwner?` <span class="badge badge-orange" style="font-size:0.63rem">申請 ${pending}</span>`:''}</div>
         <div>
-          ${isOwner?`<span class="badge ${tagClass}" style="font-size:0.6rem;margin-right:4px">${myRole}</span>`:''}
           <span class="badge ${tc}">${tt}</span>${myPayBadge?` ${myPayBadge}`:''}
         </div>
       </div>
