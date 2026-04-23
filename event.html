@@ -788,7 +788,7 @@ function renderMembers(){
         <span style="font-size:0.76rem;color:var(--text3)">活動發起人</span>
         <button class="op-btn" style="padding:4px 12px;background:var(--surface);border-color:var(--border);color:var(--text2);" onclick="event.stopPropagation();toggleFounderMenu()">⚙️</button>
         <div class="member-settings-menu" id="founderMenu" style="display:none;">
-          ${founderIsPayer && founderIndex >= 0 ? `<div class="menu-item" onclick="event.stopPropagation();closeFounderMenu();openManualPaymentModal(${founderIndex})">💰 手動記帳</div>` : ''}
+          ${founderIsPayer && founderIndex >= 0 ? `<div class="menu-item" onclick="event.stopPropagation();closeFounderMenu();openManualPaymentModal(${founderIndex})">💰 手動入帳</div>` : ''}
           ${founderIsPayer && founderIndex >= 0 ? `<div class="menu-item" onclick="event.stopPropagation();closeFounderMenu();openDeleteTxModal(${founderIndex})">🗑 刪除繳費記錄</div>` : ''}
           ${founderIsPayer && founderIndex >= 0 ? `<div style="height:1px;background:var(--border);margin:4px 0;"></div>` : ''}
           ${!founderIsPayer
