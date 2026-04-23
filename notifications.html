@@ -98,12 +98,16 @@ function renderSidebar(){
   const created=evts.filter(e=>e._isOwner);
   const joined=evts.filter(e=>!e._isOwner && (!e._myMember || e._myMember.status !== 'pending_invite'));
   let html='';
-  html+=`<div class="sidebar-menu-header" onclick="toggleSideMenu('mc')">已建立活動 <span class="chevron open" id="mc_icon">▼</span></div><div class="sidebar-menu-list open" id="mc">`;
-  if(!created.length)html+=`<div style="padding:4px 12px;font-size:0.74rem;color:var(--text3)">無資料</div>`;
-  html+=created.map(e=>`<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('')+'</div>';
-  html+=`<div class="sidebar-menu-header" onclick="toggleSideMenu('mj')">已加入活動 <span class="chevron open" id="mj_icon">▼</span></div><div class="sidebar-menu-list open" id="mj">`;
-  if(!joined.length)html+=`<div style="padding:4px 12px;font-size:0.74rem;color:var(--text3)">無資料</div>`;
-  html+=joined.map(e=>`<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('')+'</div>';
+  html+=`<div class="sidebar-menu-header" onclick="toggleSideMenu('menu_created')">已建立活動 <span class="chevron open" id="menu_created_icon">▼</span></div>`;
+  html+=`<div class="sidebar-menu-list open" id="menu_created">`;
+  if(!created.length) html+=`<div style="padding:6px 12px;font-size:0.75rem;color:var(--text3)">無資料</div>`;
+  html+=created.map(e=>`<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('');
+  html+=`</div>`;
+  html+=`<div class="sidebar-menu-header" onclick="toggleSideMenu('menu_joined')">已加入活動 <span class="chevron open" id="menu_joined_icon">▼</span></div>`;
+  html+=`<div class="sidebar-menu-list open" id="menu_joined">`;
+  if(!joined.length) html+=`<div style="padding:6px 12px;font-size:0.75rem;color:var(--text3)">無資料</div>`;
+  html+=joined.map(e=>`<a class="nav-event" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('');
+  html+=`</div>`;
   const c=document.getElementById('sidebarEvents');if(c)c.innerHTML=html;
   PC_fillSidebarUser();
 }

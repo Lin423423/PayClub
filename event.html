@@ -187,7 +187,7 @@ body{display:flex;}
   <!-- Editable description -->
   <div class="desc-row">
     <div class="desc-box" id="descBox" onclick="toggleDescEdit()">
-      <span id="evtDescText">點擊輸入說明</span>
+      <span id="evtDescText">無說明</span>
     </div>
   </div>
   <div id="descEditArea" style="display:none;margin-bottom:12px;">
@@ -466,15 +466,18 @@ function toggleSideMenu(id){document.getElementById(id).classList.toggle('open')
 function renderSidebar(){
   const evts=PC_getAllMyEvents();
   const created=evts.filter(e=>e._isOwner);
-  // 過濾掉 pending_invite 狀態的活動
   const joined=evts.filter(e=>!e._isOwner && (!e._myMember || e._myMember.status !== 'pending_invite'));
   let html='';
-  html+=`<div class="sidebar-menu-header" onclick="toggleSideMenu('mc')">已建立 <span class="chevron open" id="mc_icon">▼</span></div><div class="sidebar-menu-list open" id="mc">`;
-  if(!created.length)html+=`<div style="padding:4px 12px;font-size:0.74rem;color:var(--text3)">無</div>`;
-  html+=created.map(e=>`<a class="nav-event${e.id===eventId?' current':''}" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('')+'</div>';
-  html+=`<div class="sidebar-menu-header" onclick="toggleSideMenu('mj')">已加入 <span class="chevron open" id="mj_icon">▼</span></div><div class="sidebar-menu-list open" id="mj">`;
-  if(!joined.length)html+=`<div style="padding:4px 12px;font-size:0.74rem;color:var(--text3)">無</div>`;
-  html+=joined.map(e=>`<a class="nav-event${e.id===eventId?' current':''}" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('')+'</div>';
+  html+=`<div class="sidebar-menu-header" onclick="toggleSideMenu('menu_created')">已建立活動 <span class="chevron open" id="menu_created_icon">▼</span></div>`;
+  html+=`<div class="sidebar-menu-list open" id="menu_created">`;
+  if(!created.length) html+=`<div style="padding:6px 12px;font-size:0.75rem;color:var(--text3)">無資料</div>`;
+  html+=created.map(e=>`<a class="nav-event${e.id===eventId?' current':''}" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('');
+  html+=`</div>`;
+  html+=`<div class="sidebar-menu-header" onclick="toggleSideMenu('menu_joined')">已加入活動 <span class="chevron open" id="menu_joined_icon">▼</span></div>`;
+  html+=`<div class="sidebar-menu-list open" id="menu_joined">`;
+  if(!joined.length) html+=`<div style="padding:6px 12px;font-size:0.75rem;color:var(--text3)">無資料</div>`;
+  html+=joined.map(e=>`<a class="nav-event${e.id===eventId?' current':''}" href="event.html?id=${e.id}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${e.title}</span></a>`).join('');
+  html+=`</div>`;
   const c=document.getElementById('sidebarEvents');if(c)c.innerHTML=html;
   PC_fillSidebarUser();
 }
@@ -788,7 +791,7 @@ function renderMembers(){
         <span style="font-size:0.76rem;color:var(--text3)">活動發起人</span>
         <button class="op-btn" style="padding:4px 12px;background:var(--surface);border-color:var(--border);color:var(--text2);" onclick="event.stopPropagation();toggleFounderMenu()">⚙️</button>
         <div class="member-settings-menu" id="founderMenu" style="display:none;">
-          ${founderIsPayer && founderIndex >= 0 ? `<div class="menu-item" onclick="event.stopPropagation();closeFounderMenu();openManualPaymentModal(${founderIndex})">💰 手動入帳</div>` : ''}
+          ${founderIsPayer && founderIndex >= 0 ? `<div class="menu-item" onclick="event.stopPropagation();closeFounderMenu();openManualPaymentModal(${founderIndex})">💰 手動記帳</div>` : ''}
           ${founderIsPayer && founderIndex >= 0 ? `<div class="menu-item" onclick="event.stopPropagation();closeFounderMenu();openDeleteTxModal(${founderIndex})">🗑 刪除繳費記錄</div>` : ''}
           ${founderIsPayer && founderIndex >= 0 ? `<div style="height:1px;background:var(--border);margin:4px 0;"></div>` : ''}
           ${!founderIsPayer
