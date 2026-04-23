@@ -103,7 +103,7 @@ body{min-height:100vh;background:var(--bg);}
         <div id="userIdentitySection"></div>
         <div class="form-group">
           <label class="form-label">本次繳費金額</label>
-          <input type="number" id="customPayAmount" class="form-input" placeholder="0" min="0" style="font-size:1.1rem;font-weight:600;color:var(--accent)" oninput="updatePayButton()">
+          <input type="number" id="customPayAmount" class="form-input" placeholder="請輸入繳費金額" min="1" style="font-size:1.1rem;font-weight:600;color:var(--accent)" oninput="updatePayButton()">
           <div style="font-size:0.75rem;color:var(--text3);margin-top:4px">可自行輸入繳費金額，或使用預設應繳金額</div>
         </div>
         <div class="form-group">
@@ -195,8 +195,14 @@ function setupPage(){
   document.getElementById('payAmount').textContent='$'+personalAmt.toLocaleString();
   document.getElementById('payBtnAmt').textContent='$'+personalAmt.toLocaleString();
   
-  // 設定自定義金額欄位預設值
-  document.getElementById('customPayAmount').value = personalAmt;
+  // 設定自定義金額欄位預設值（有應繳金額才填入，否則留空）
+  if(personalAmt > 0){
+    document.getElementById('customPayAmount').value = personalAmt;
+    document.getElementById('payBtnAmt').textContent = '$' + personalAmt.toLocaleString();
+  } else {
+    document.getElementById('customPayAmount').value = '';
+    document.getElementById('payBtnAmt').textContent = '請輸入金額';
+  }
   
   const dl=new Date(foundEvent.deadline),days=Math.ceil((dl-new Date())/86400000);
   const dtag=document.getElementById('deadlineTag');
@@ -267,17 +273,24 @@ function setupPage(){
 function selectMethod(el,m){document.querySelectorAll('.pay-method').forEach(x=>x.classList.remove('selected'));el.classList.add('selected');selectedMethod=m;}
 
 function updatePayButton(){
-  const customAmt = parseFloat(document.getElementById('customPayAmount').value) || 0;
-  document.getElementById('payBtnAmt').textContent = '$' + customAmt.toLocaleString();
+  const val = document.getElementById('customPayAmount').value;
+  const customAmt = parseFloat(val);
+  if(!val || isNaN(customAmt) || customAmt <= 0){
+    document.getElementById('payBtnAmt').textContent = '請輸入金額';
+  } else {
+    document.getElementById('payBtnAmt').textContent = '$' + customAmt.toLocaleString();
+  }
 }
 
 function submitPayment(){
   if(isDemo){PC_toast('🎮 Demo 模式，不實際處理付款');return;}
   
   // 取得自定義繳費金額
-  const actualPayAmount = parseFloat(document.getElementById('customPayAmount').value) || 0;
-  if(actualPayAmount <= 0){
-    PC_toast('❌ 請輸入有效的繳費金額');
+  const rawVal = document.getElementById('customPayAmount').value;
+  const actualPayAmount = parseFloat(rawVal);
+  if(!rawVal || isNaN(actualPayAmount) || actualPayAmount <= 0){
+    PC_toast('❌ 請輸入大於 0 的繳費金額');
+    document.getElementById('customPayAmount').focus();
     return;
   }
   
