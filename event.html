@@ -279,11 +279,11 @@ body{display:flex;}
     <div class="modal-title">➕ 新增成員</div>
     <div class="modal-sub">輸入成員 Email 並選擇在此活動的角色（可多選）</div>
     <div class="form-group"><label class="form-label">成員 Email</label><input type="email" id="addEmail" class="form-input" placeholder="member@email.com" onkeydown="if(event.key==='Enter')addMember()"></div>
-    <div class="form-group"><label class="form-label">角色（可多選）</label>
+    <div class="form-group"><label class="form-label">身分</label>
       <div class="modal-role-chips" id="addRoleChips">
-        <div class="mrc" data-role="payer" onclick="toggleMRC(this)">💳 繳費者</div>
-        <div class="mrc" data-role="counter" onclick="toggleMRC(this)">📊 統計者</div>
-        <div class="mrc" data-role="admin" onclick="toggleMRC(this)">👑 管理員</div>
+        <div class="mrc" data-role="payer" onclick="selectMRC(this,'addRoleChips')">👤 成員</div>
+        <div class="mrc" data-role="counter" onclick="selectMRC(this,'addRoleChips')">📊 統計者</div>
+        <div class="mrc" data-role="admin" onclick="selectMRC(this,'addRoleChips')">👑 管理員</div>
       </div>
     </div>
     <div class="modal-actions">
@@ -297,11 +297,11 @@ body{display:flex;}
 <div class="overlay" id="approveOverlay">
   <div class="modal">
     <div class="modal-title">✅ 同意加入申請</div>
-    <div class="modal-sub" id="approveSubText">選擇此成員在活動中的角色（可多選）</div>
+    <div class="modal-sub" id="approveSubText">選擇此成員的身分</div>
     <div class="modal-role-chips" id="approveRoleChips">
-      <div class="mrc" data-role="payer" onclick="toggleMRC(this)">💳 繳費者</div>
-      <div class="mrc" data-role="counter" onclick="toggleMRC(this)">📊 統計者</div>
-      <div class="mrc" data-role="admin" onclick="toggleMRC(this)">👑 管理員</div>
+      <div class="mrc" data-role="payer" onclick="selectMRC(this,'approveRoleChips')">👤 成員</div>
+      <div class="mrc" data-role="counter" onclick="selectMRC(this,'approveRoleChips')">📊 統計者</div>
+      <div class="mrc" data-role="admin" onclick="selectMRC(this,'approveRoleChips')">👑 管理員</div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" style="flex:1" onclick="closeOverlay('approveOverlay')">取消</button>
@@ -314,11 +314,11 @@ body{display:flex;}
 <div class="overlay" id="roleOverlay">
   <div class="modal">
     <div class="modal-title">🎭 調整成員身份</div>
-    <div class="modal-sub" id="roleSubText">選擇新的身份（可多選）。管理員身份只有活動發起人可調整。</div>
+    <div class="modal-sub" id="roleSubText">選擇成員的身分。管理員身份只有活動發起人可調整。</div>
     <div class="modal-role-chips" id="roleAdjChips">
-      <div class="mrc" data-role="payer" onclick="toggleMRC(this)">💳 繳費者</div>
-      <div class="mrc" data-role="counter" onclick="toggleMRC(this)">📊 統計者</div>
-      <div class="mrc" data-role="admin" id="roleAdminChip" onclick="toggleMRC(this)">👑 管理員</div>
+      <div class="mrc" data-role="payer" onclick="selectMRC(this,'roleAdjChips')">👤 成員</div>
+      <div class="mrc" data-role="counter" onclick="selectMRC(this,'roleAdjChips')">📊 統計者</div>
+      <div class="mrc" data-role="admin" id="roleAdminChip" onclick="selectMRC(this,'roleAdjChips')">👑 管理員</div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" style="flex:1" onclick="closeOverlay('roleOverlay')">取消</button>
@@ -428,7 +428,7 @@ let evt=null,cf='all',roleFilter='all',joinPanelOpen=false;
 let pendingApproveIdx=-1,pendingStatusIdx=-1,pendingDeleteIdx=-1,pendingRoleIdx=-1,selectedStatus='paid';
 let amtSelections=new Set();
 
-const RL={payer:'繳費者',counter:'統計者',admin:'管理員',pending_invite:'待確認',founder:'發起人'};
+const RL={payer:'成員',counter:'統計者',admin:'管理員',pending_invite:'待確認',founder:'發起人'};
 const RB={payer:'badge-blue',counter:'badge-orange',admin:'badge-green',pending_invite:'badge-orange',founder:'badge-founder'};
 const RC={payer:'#4f6ef7',counter:'#d97706',admin:'#16a34a',founder:'#92400e'};
 const ROLE_SEL={payer:'sel-payer',counter:'sel-counter',admin:'sel-admin'};
@@ -1110,15 +1110,30 @@ function renderJoinReqs(){
     </div>`;
   }).join('');
 }
-function openApproveModal(i){pendingApproveIdx=i;const reqs=PC_getJoinRequests(eventId);document.getElementById('approveSubText').textContent=`為 ${reqs[i].name}(${reqs[i].email}) 選擇角色`;document.querySelectorAll('#approveRoleChips .mrc').forEach(el=>{Object.values(ROLE_SEL).forEach(c=>el.classList.remove(c));});document.getElementById('approveOverlay').classList.add('show');}
+function openApproveModal(i){
+  pendingApproveIdx=i;const reqs=PC_getJoinRequests(eventId);
+  document.getElementById('approveSubText').textContent=`為 ${reqs[i].name}(${reqs[i].email}) 選擇身份`;
+  document.querySelectorAll('#approveRoleChips .mrc').forEach(el=>{Object.values(ROLE_SEL).forEach(c=>el.classList.remove(c));});
+  // 預設選取「成員」
+  const payerChip=document.querySelector('#approveRoleChips .mrc[data-role="payer"]');
+  if(payerChip) payerChip.classList.add(ROLE_SEL['payer']);
+  document.getElementById('approveOverlay').classList.add('show');
+}
 function confirmApprove(){
-  const roles=getChipRoles('approveRoleChips');if(!roles.length){PC_toast('請至少選擇一個角色');return;}
+  const selected=getChipRoles('approveRoleChips');
+  if(!selected.length){PC_toast('請選擇一個身份');return;}
+  const primaryRole=selected[0];
+  const roles=primaryRole==='payer'?['payer']:[primaryRole,'payer'];
   const reqs=PC_getJoinRequests(eventId);const req=reqs[pendingApproveIdx];
   req.status='approved';req.approvedRoles=roles;PC_saveJoinRequests(eventId,reqs);
   const evts=PC_getEvents();const e=evts.find(x=>x.id===eventId);
   if(!e.members)e.members=[];
-  if(!e.members.find(m=>m.email===req.email)){e.members.push({email:req.email,name:req.name,roles,role:roles[0],status:roles.includes('payer')?'pending':'none',paidAt:'',customAmount:null,txId:'',remark:'',payMethod:'',txHistory:[]});PC_saveEvents(evts);}
-  PC_sendNotify(req.email,'申請已通過 🎉',`你加入「${evt.title}」的申請已通過，角色：${roles.map(r=>RL[r]).join('、')}。`,'success');
+  if(!e.members.find(m=>m.email===req.email)){
+    e.members.push({email:req.email,name:req.name,roles,role:primaryRole,status:'pending',paidAt:'',customAmount:null,txId:'',remark:'',payMethod:'',txHistory:[]});
+    PC_saveEvents(evts);
+  }
+  const roleLabel=primaryRole==='payer'?'成員':primaryRole==='counter'?'統計者':'管理員';
+  PC_sendNotify(req.email,'申請已通過 🎉',`你加入「${evt.title}」的申請已通過，身份：${roleLabel}。`,'success');
   closeOverlay('approveOverlay');renderPage();renderJoinReqs();PC_toast('✅ 已同意 '+req.email+' 加入');
 }
 function rejectReq(i){
@@ -1306,17 +1321,29 @@ function savePaymentMethods(){
 }
 
 // ── Add member ──
-function openAdd(){document.getElementById('addEmail').value='';document.querySelectorAll('#addRoleChips .mrc').forEach(el=>{Object.values(ROLE_SEL).forEach(c=>el.classList.remove(c));});document.getElementById('addOverlay').classList.add('show');setTimeout(()=>document.getElementById('addEmail').focus(),100);}
+function openAdd(){
+  document.getElementById('addEmail').value='';
+  document.querySelectorAll('#addRoleChips .mrc').forEach(el=>{Object.values(ROLE_SEL).forEach(c=>el.classList.remove(c));});
+  // 預設選取「成員」
+  const payerChip=document.querySelector('#addRoleChips .mrc[data-role="payer"]');
+  if(payerChip) payerChip.classList.add(ROLE_SEL['payer']);
+  document.getElementById('addOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('addEmail').focus(),100);
+}
 function addMember(){
-  const email=document.getElementById('addEmail').value.trim();const roles=getChipRoles('addRoleChips');
+  const email=document.getElementById('addEmail').value.trim();
+  const selected=getChipRoles('addRoleChips');
   if(!email||!email.includes('@')){PC_toast('請輸入有效 Email');return;}
-  if(!roles.length){PC_toast('請至少選擇一個角色');return;}
+  if(!selected.length){PC_toast('請選擇一個身份');return;}
+  const primaryRole=selected[0];
+  const roles=primaryRole==='payer'?['payer']:[primaryRole,'payer'];
   const evts=PC_getEvents();const e=evts.find(x=>x.id===eventId);
   if(!e.members)e.members=[];
   if(e.members.find(m=>m.email===email)){PC_toast('此 Email 已在名單中');return;}
-  e.members.push({email,name:email.split('@')[0],roles,role:roles[0],status:'pending_invite',paidAt:'',customAmount:null,txId:'',remark:'',payMethod:'',txHistory:[]});
+  const roleLabel=primaryRole==='payer'?'成員':primaryRole==='counter'?'統計者':'管理員';
+  e.members.push({email,name:email.split('@')[0],roles,role:primaryRole,status:'pending_invite',paidAt:'',customAmount:null,txId:'',remark:'',payMethod:'',txHistory:[]});
   PC_saveEvents(evts);
-  PC_sendNotify(email,'活動邀請確認 🎫',`「${evt.title}」的管理員邀請你以【${roles.map(r=>RL[r]).join('、')}】身份加入。請至「加入活動」頁面查看並確認。`,'invite');
+  PC_sendNotify(email,'活動邀請確認 🎫',`「${evt.title}」的管理員邀請你以【${roleLabel}】身份加入。請至「加入活動」頁面查看並確認。`,'invite');
   closeOverlay('addOverlay');renderPage();PC_toast('✅ 已新增 '+email+' 並發送邀請通知');
 }
 
@@ -1325,7 +1352,12 @@ function openRoleModal(i){
   pendingRoleIdx=i;const m=evt.members[i];
   document.getElementById('roleSubText').textContent=`調整「${m.email||m.name}」的身份。${isFounder()?'':'管理員身份只有活動發起人可調整。'}`;
   const curRoles=getRoles(m);
-  document.querySelectorAll('#roleAdjChips .mrc').forEach(el=>{Object.values(ROLE_SEL).forEach(c=>el.classList.remove(c));if(curRoles.includes(el.dataset.role))el.classList.add(ROLE_SEL[el.dataset.role]||'');});
+  // 單選：找目前的主要身分（admin > counter > payer）
+  const primaryRole=curRoles.includes('admin')?'admin':curRoles.includes('counter')?'counter':'payer';
+  document.querySelectorAll('#roleAdjChips .mrc').forEach(el=>{
+    Object.values(ROLE_SEL).forEach(c=>el.classList.remove(c));
+    if(el.dataset.role===primaryRole) el.classList.add(ROLE_SEL[primaryRole]||'');
+  });
   // Disable admin chip if not founder
   const adminChip=document.getElementById('roleAdminChip');
   adminChip.style.opacity=isFounder()?'1':'0.4';
@@ -1333,35 +1365,27 @@ function openRoleModal(i){
   document.getElementById('roleOverlay').classList.add('show');
 }
 function confirmRoleAdj(){
-  let roles=getChipRoles('roleAdjChips');
-  // 非發起人：保留被調整成員原本的 admin 角色（admin chip 是 disabled 的）
+  const selected=getChipRoles('roleAdjChips');
+  if(!selected.length){PC_toast('請選擇一個身份');return;}
+  const primaryRole=selected[0]; // 單選，只有一個
+
   const targetMemberOrig=evt.members[pendingRoleIdx];
-  if(!isFounder() && targetMemberOrig){
-    const origRoles=getRoles(targetMemberOrig);
-    roles=roles.filter(r=>r!=='admin');
-    if(origRoles.includes('admin')) roles.push('admin');
-  }
-  if(!roles.length){PC_toast('請至少選擇一個身份');return;}
+  // 非發起人無法改 admin
+  if(!isFounder() && primaryRole==='admin'){PC_toast('只有發起人可設定管理員');return;}
 
   const evts=PC_getEvents();const e=evts.find(x=>x.id===eventId);
   if(!e){PC_toast('找不到活動');return;}
-
-  // 用 email 找成員，避免 index 錯位
   const targetEmail=targetMemberOrig?.email;
   const m=targetEmail ? e.members.find(mb=>mb.email===targetEmail) : e.members[pendingRoleIdx];
   if(!m){PC_toast('找不到成員');return;}
 
-  const oldRoles=getRoles(m);
-  const wasPayerAndNowNot=oldRoles.includes('payer')&&!roles.includes('payer');
-  m.roles=roles;m.role=roles[0];
-
-  // 移除繳費者身分時：保留 txHistory（實收），但清除應收金額
-  if(wasPayerAndNowNot){
-    m.status='none';
-    m.customAmount=0;
-  }
+  // 身分永遠包含 payer，primaryRole 決定主要顯示身分
+  const roles=primaryRole==='payer'?['payer']:[primaryRole,'payer'];
+  m.roles=roles;m.role=primaryRole;
+  // 降為純成員時 status 維持，不清除資料
   PC_saveEvents(evts);
-  PC_sendNotify(m.email,'身份已調整 🎭',`你在「${evt.title}」的身份已更新為：${roles.map(r=>RL[r]).join('、')}。`,'info');
+  const roleLabel=primaryRole==='payer'?'成員':primaryRole==='counter'?'統計者':'管理員';
+  PC_sendNotify(m.email,'身份已調整 🎭',`你在「${evt.title}」的身份已更新為：${roleLabel}。`,'info');
   closeOverlay('roleOverlay');renderPage();PC_toast('✅ 身份已更新');
 }
 
@@ -1630,6 +1654,11 @@ function saveAmtEdit(){
 // ── Helpers ──
 function getChipRoles(containerId){return Array.from(document.querySelectorAll('#'+containerId+' .mrc')).filter(el=>Object.values(ROLE_SEL).some(c=>el.classList.contains(c))).map(el=>el.dataset.role);}
 function toggleMRC(el){const role=el.dataset.role;const cls=ROLE_SEL[role];if(cls)el.classList.toggle(cls);}
+// 單選版：同一組 chips 互斥
+function selectMRC(el,containerId){
+  document.querySelectorAll('#'+containerId+' .mrc').forEach(e=>{Object.values(ROLE_SEL).forEach(c=>e.classList.remove(c));});
+  const cls=ROLE_SEL[el.dataset.role];if(cls)el.classList.add(cls);
+}
 
 // ── 成員設定選單 ──
 function toggleMemberMenu(index){
