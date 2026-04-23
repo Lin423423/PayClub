@@ -757,12 +757,12 @@ function renderMembers(){
       }
     }
 
-    // Status badge
+    // Status badge — 只有繳費者才顯示繳費狀態
     let bc,bt;
     if(isFounderRow){bc='badge-founder';bt='發起人';}
     else if(isInvite){bc='badge-orange';bt='未加入';}
     else if(isPay){bc=m.status==='paid'?'badge-green':m.status==='overdue'?'badge-red':'badge-orange';bt=m.status==='paid'?'已繳費':m.status==='overdue'?'逾期':'待繳費';}
-    else{bc='badge-gray';bt=RL[primaryRole]||primaryRole;}
+    else{bc='';bt='';} // 管理員、統計者不顯示狀態 badge
 
     const detailId='md_'+ri+'_'+m.email.replace('@','_');
     const canClick=isAdmin()||isCounter();
@@ -817,7 +817,7 @@ function renderMembers(){
           <div class="m-sub">${m.paidAt||'—'}${m.payMethod?' via '+m.payMethod:''}</div>
         </div>
         <div class="m-amount">${amt}</div>
-        <span class="badge ${bc}">${bt}</span>
+        ${bc?`<span class="badge ${bc}">${bt}</span>`:''}
         ${opsHtml}
       </div>
       <div class="m-detail" id="${detailId}">
@@ -1337,16 +1337,31 @@ function openRoleModal(i){
 }
 function confirmRoleAdj(){
   let roles=getChipRoles('roleAdjChips');
-  if(!isFounder())roles=roles.filter(r=>r!=='admin').concat(getRoles(evt.members[pendingRoleIdx]).filter(r=>r==='admin'));
+  // 非發起人：保留被調整成員原本的 admin 角色（admin chip 是 disabled 的）
+  const targetMemberOrig=evt.members[pendingRoleIdx];
+  if(!isFounder() && targetMemberOrig){
+    const origRoles=getRoles(targetMemberOrig);
+    roles=roles.filter(r=>r!=='admin');
+    if(origRoles.includes('admin')) roles.push('admin');
+  }
   if(!roles.length){PC_toast('請至少選擇一個身份');return;}
+
   const evts=PC_getEvents();const e=evts.find(x=>x.id===eventId);
-  const m=e.members[pendingRoleIdx];const oldRoles=getRoles(m);
+  if(!e){PC_toast('找不到活動');return;}
+
+  // 用 email 找成員，避免 index 錯位
+  const targetEmail=targetMemberOrig?.email;
+  const m=targetEmail ? e.members.find(mb=>mb.email===targetEmail) : e.members[pendingRoleIdx];
+  if(!m){PC_toast('找不到成員');return;}
+
+  const oldRoles=getRoles(m);
   const wasPayerAndNowNot=oldRoles.includes('payer')&&!roles.includes('payer');
   m.roles=roles;m.role=roles[0];
-  // 移除繳費者身分時：保留所有繳費紀錄，只將 status 改為 none
+
+  // 移除繳費者身分時：保留 txHistory（實收），但清除應收金額
   if(wasPayerAndNowNot){
     m.status='none';
-    // txHistory、paidAt、txId、payMethod 全部保留，不清除
+    m.customAmount=0;
   }
   PC_saveEvents(evts);
   PC_sendNotify(m.email,'身份已調整 🎭',`你在「${evt.title}」的身份已更新為：${roles.map(r=>RL[r]).join('、')}。`,'info');
