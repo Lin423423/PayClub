@@ -200,7 +200,7 @@ body{display:flex;}
 
   <div class="dl-row" style="display:flex;align-items:center;gap:8px;">
     <span style="font-size:0.84rem;color:var(--text2)">截止：</span>
-    <button class="dl-date-btn" id="dlDisplay" onclick="toggleDlEdit()">—</button>
+    <button class="dl-date-btn" id="dlDisplay" onclick="if(isFounder()||isAdmin())toggleDlEdit();else PC_toast('只有發起人或管理員可修改截止日期')">—</button>
     <div id="settingsButtonContainer"></div>
   </div>
   <div id="dlEditRow" style="display:none;margin-bottom:14px;">
@@ -566,6 +566,10 @@ function renderPage(){
   document.getElementById('bcTitle').textContent=evt.title;
   document.getElementById('evtTitle').textContent=evt.title;
   document.getElementById('dlDisplay').textContent=evt.deadline;
+  // 截止日期按鈕：只有發起人/管理員才顯示可點擊樣式
+  const dlBtn=document.getElementById('dlDisplay');
+  if(!(isFounder()||isAdmin())){dlBtn.style.cursor='default';dlBtn.style.pointerEvents='none';}
+  else{dlBtn.style.cursor='pointer';dlBtn.style.pointerEvents='auto';}
   if(evt.inviteCode){document.getElementById('invitePill').style.display='inline-flex';document.getElementById('inviteCodeText').textContent=evt.inviteCode;}
 
   // Description
@@ -632,11 +636,11 @@ function renderPage(){
 
   const payers=PC_getPayers(evt);
   const paid=payers.filter(m=>m.status==='paid').length;
-  // 待繳只計算應繳金額 > 0 的成員
   const pend=payers.filter(m=>m.status==='pending'&&PC_getExpectedAmount(evt,m)>0).length;
   const ovd=payers.filter(m=>m.status==='overdue'&&PC_getExpectedAmount(evt,m)>0).length;
-  const pct=payers.length?Math.round(paid/payers.length*100):0;
   const c=PC_getCollected(evt),e=PC_getExpected(evt);
+  // 繳費率 = 實收 / 應收（金額計算）
+  const pct=e>0?Math.min(100,Math.round(c/e*100)):0;
   document.getElementById('sC').textContent='$'+c.toLocaleString();
   document.getElementById('sE').textContent='$'+e.toLocaleString();
   document.getElementById('sP').textContent='$'+(e-c).toLocaleString();

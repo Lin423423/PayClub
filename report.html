@@ -289,7 +289,8 @@ function renderReport(){
     collected+=PC_getCollected(e);expected+=PC_getExpected(e);
     PC_getPayers(e).forEach(m=>{totalPayers++;if(m.status==='paid')paidCount++;else if(m.status==='overdue')ovdCount++;else pendCount++;});
   });
-  const rate=totalPayers?Math.round(paidCount/totalPayers*100):0;
+  // 繳費率 = 實收 / 應收（金額計算）
+  const rate=expected>0?Math.min(100,Math.round(collected/expected*100)):0;
   document.getElementById('rCollected').textContent='$'+collected.toLocaleString();
   document.getElementById('rExpected').textContent='$'+expected.toLocaleString();
   document.getElementById('rRate').textContent=rate+'%';
@@ -300,8 +301,8 @@ function renderReport(){
   document.getElementById('dPct').textContent=rate+'%';
   const circ=2*Math.PI*30;
   document.getElementById('dPaid').setAttribute('stroke-dasharray',`${circ*rate/100} ${circ}`);
-  const pendPct=totalPayers?(pendCount+ovdCount)/totalPayers:0;
-  document.getElementById('dPend').setAttribute('stroke-dasharray',`${circ*pendPct} ${circ}`);
+  const pendPct=expected>0?(expected-collected)/expected:0;
+  document.getElementById('dPend').setAttribute('stroke-dasharray',`${circ*Math.min(1,pendPct)} ${circ}`);
   document.getElementById('dPend').setAttribute('stroke-dashoffset',`-${circ*rate/100}`);
 
   if(!evts.length){
@@ -453,7 +454,7 @@ function exportPDF(){
   document.getElementById('pdfTotal').textContent='$'+c.toLocaleString();
   document.getElementById('pdfExpected').textContent='$'+ex.toLocaleString();
   document.getElementById('pdfPending').textContent='$'+(ex-c).toLocaleString();
-  document.getElementById('pdfRate').textContent=tp?Math.round(paid/tp*100)+'%':'0%';
+  document.getElementById('pdfRate').textContent=ex>0?Math.min(100,Math.round(c/ex*100))+'%':'0%';
   document.getElementById('pdfEvts').textContent=evts.length;
   document.getElementById('pdfStartDate').textContent=startDate;
   document.getElementById('pdfEndDate').textContent=endDate;

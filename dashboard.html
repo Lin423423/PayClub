@@ -411,8 +411,9 @@ function renderEvents(){
     const tagClass = isOwner ? 'badge-blue' : 'badge-orange';
     
     // 計算進度
-    const p=PC_getPayers(e),paid=p.filter(m=>m.status==='paid').length,pct=p.length?Math.round(paid/p.length*100):0;
+    const p=PC_getPayers(e),paid=p.filter(m=>m.status==='paid').length;
     const c=PC_getCollected(e),ex=PC_getExpected(e);
+    const pct=ex>0?Math.min(100,Math.round(c/ex*100)):0;
     const tc=e.status==='active'?'badge-green':'badge-gray';
     const tt=e.status==='active'?'進行中':'已結束';
     const code=e.inviteCode||'';
