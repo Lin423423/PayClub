@@ -140,8 +140,8 @@ function PC_getExpectedAmount(event, member){
   return Number(event.amount)||0;
 }
 function PC_getCollected(event){ 
-  // 計算實際已收金額：累加所有繳費記錄
-  return PC_getPayers(event).reduce((s,m)=>{
+  // 計算實際已收金額：累加所有有繳費紀錄的成員（包含曾是繳費者但身分已被移除的）
+  return (event.members||[]).reduce((s,m)=>{
     const paidTotal = (m.txHistory || []).reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
     return s + paidTotal;
   }, 0);
@@ -154,7 +154,7 @@ function PC_copyText(text, msg){
   });
 }
 
-const ROLE_LABELS = {admin:'管理員', payer:'繳費者', observer:'觀察者', counter:'統計者'};
+const ROLE_LABELS = {admin:'管理員', payer:'成員', observer:'觀察者', counter:'統計者'};
 const ROLE_BADGE  = {admin:'badge-green', payer:'badge-blue', observer:'badge-gray', counter:'badge-orange'};
 
 // ── 側邊欄填充函數 ──

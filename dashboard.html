@@ -405,8 +405,9 @@ function renderEvents(){
   
   grid.innerHTML = evts.map(e => {
     const isOwner = e._isOwner;
-    const rolesArray = e._myMember ? (Array.isArray(e._myMember.role) ? e._myMember.role : [e._myMember.role]) : [];
-    const myRole = e._myMember ? rolesArray.map(r => ROLE_LABELS[r]||r).join(' + ') : '主辦人';
+    const myMemberRoles = e._myMember ? (Array.isArray(e._myMember.roles) ? e._myMember.roles : (e._myMember.role ? [e._myMember.role] : [])) : [];
+    const primaryRole = myMemberRoles.includes('admin')?'admin':myMemberRoles.includes('counter')?'counter':myMemberRoles.length?'payer':null;
+    const myRole = isOwner ? '主辦人' : (primaryRole ? (ROLE_LABELS[primaryRole]||primaryRole) : '成員');
     const tagClass = isOwner ? 'badge-blue' : 'badge-orange';
     
     // 計算進度
@@ -423,28 +424,37 @@ function renderEvents(){
     if(!isOwner && e._myMember){
       const myRoles=Array.isArray(e._myMember.roles)?e._myMember.roles:(e._myMember.role?[e._myMember.role]:[]);
       if(myRoles.includes('payer')){
-        const myStatus=e._myMember.status;
-        if(myStatus==='paid'){
-          myPayBadge=`<span class="badge badge-green" style="font-size:0.62rem">✓ 您已繳費</span>`;
-        } else if(myStatus==='overdue'){
-          myPayBadge=`<span class="badge badge-red" style="font-size:0.62rem">⚠ 逾期未繳</span>`;
-        } else {
-          myPayBadge=`<span class="badge badge-orange" style="font-size:0.62rem">尚未繳費</span>`;
+        // 應繳金額為 0 時不顯示繳費狀態
+        const myExpected=e._myMember.customAmount!=null?Number(e._myMember.customAmount):Number(e.amount||0);
+        if(myExpected>0){
+          const myStatus=e._myMember.status;
+          if(myStatus==='paid'){
+            myPayBadge=`<span class="badge badge-green" style="font-size:0.62rem">✓ 您已繳費</span>`;
+          } else if(myStatus==='overdue'){
+            myPayBadge=`<span class="badge badge-red" style="font-size:0.62rem">⚠ 逾期未繳</span>`;
+          } else {
+            myPayBadge=`<span class="badge badge-orange" style="font-size:0.62rem">尚未繳費</span>`;
+          }
         }
       }
     }
     
     // 選取模式判斷
     const isSel = selIds.has(e.id);
-    const oc = selMode ? `toggleCard('${e.id}',event)` : `location.href='event.html?id=${e.id}'`;
+    // 只有自己建立的活動才可選取
+    const canSelect = selMode && isOwner;
+    const oc = canSelect ? `toggleCard('${e.id}',event)` : `location.href='event.html?id=${e.id}'`;
 
     return `<div class="event-card ${isSel?'selected':''}" onclick="${oc}">
-      ${selMode ? `<div class="ec-check${isSel?' checked':''}">${isSel?'✓':''}</div>` : ''}
-      <div class="ec-top" style="${selMode?'padding-left:26px':''}">
+      ${canSelect ? `<div class="ec-check${isSel?' checked':''}">${isSel?'✓':''}</div>` : ''}
+      <div class="ec-top" style="${canSelect?'padding-left:26px':''}">
         <div class="ec-title">${e.title}${pending>0&&isOwner?` <span class="badge badge-orange" style="font-size:0.63rem">申請 ${pending}</span>`:''}</div>
-        <div><span class="badge ${tagClass}" style="font-size:0.6rem;margin-right:4px">${myRole}</span><span class="badge ${tc}">${tt}</span>${myPayBadge?` ${myPayBadge}`:''}</div>
+        <div>
+          ${isOwner?`<span class="badge ${tagClass}" style="font-size:0.6rem;margin-right:4px">${myRole}</span>`:''}
+          <span class="badge ${tc}">${tt}</span>${myPayBadge?` ${myPayBadge}`:''}
+        </div>
       </div>
-      <div class="ec-meta" style="${selMode?'padding-left:26px':''}"><span>👥 ${p.length} 人</span><span>📅 ${e.deadline}</span></div>
+      <div class="ec-meta" style="${canSelect?'padding-left:26px':''}"><span>👥 ${p.length} 人</span><span>📅 ${e.deadline}</span></div>
       ${code && isOwner?`<div class="ec-invite" onclick="copyInvite('${code}',event)"><span style="font-size:0.65rem;color:var(--accent);opacity:0.7">邀請碼</span><span class="ec-invite-code">${code}</span><span style="font-size:0.7rem;color:var(--accent);opacity:0.5">📋</span></div>`:''}
       <div class="ec-revenue">
         <div class="rev-box"><div class="rev-label">實收</div><div class="rev-val g">$${c.toLocaleString()}</div></div>

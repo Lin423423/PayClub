@@ -571,14 +571,22 @@ function renderPage(){
   // Description
   const descText=document.getElementById('evtDescText');
   const descBox=document.getElementById('descBox');
+  const canEditDesc=isFounder()||isAdmin();
   if(evt.desc){
     descText.textContent=evt.desc;
     descBox.classList.remove('empty');
+    descBox.style.display='inline-block';
   } else {
-    descText.textContent='點擊以輸入說明';
-    descBox.classList.add('empty');
+    if(canEditDesc){
+      // 發起人/管理員：顯示提示文字
+      descText.textContent='點擊以輸入說明';
+      descBox.classList.add('empty');
+      descBox.style.display='inline-block';
+    } else {
+      // 一般成員/統計者：沒有說明就隱藏整個欄位
+      descBox.style.display='none';
+    }
   }
-  const canEditDesc=isFounder()||isAdmin();
   descBox.style.cursor=canEditDesc?'pointer':'default';
   descBox.onclick=canEditDesc?toggleDescEdit:null;
 
@@ -810,7 +818,7 @@ function renderMembers(){
       <div class="member-row" onclick="${canClick?`toggleMDetail('${detailId}')`:''}" style="${!canClick?'cursor:default':''}">
         <div class="m-av" style="background:${RC[primaryRole]||'#9ca3af'}">${(m.email||m.name||'?').slice(0,1).toUpperCase()}</div>
         <div class="m-info">
-          <div class="m-name-row">${m.email||m.name||'—'} ${isFounderRow?`<span class="badge badge-founder" style="font-size:0.63rem;padding:1px 6px">發起人</span>`:''}</div>
+          <div class="m-name-row">${m.email||m.name||'—'} ${isFounderRow?`<span class="badge badge-founder" style="font-size:0.63rem;padding:1px 6px">發起人</span>`:primaryRole==='admin'?`<span class="badge badge-green" style="font-size:0.63rem;padding:1px 6px">管理員</span>`:primaryRole==='counter'?`<span class="badge badge-orange" style="font-size:0.63rem;padding:1px 6px">統計者</span>`:`<span class="badge badge-blue" style="font-size:0.63rem;padding:1px 6px">成員</span>`}</div>
           <div class="m-sub">${m.paidAt||'—'}${m.payMethod?' via '+m.payMethod:''}</div>
         </div>
         <div class="m-amount">${amt}</div>
@@ -1367,25 +1375,28 @@ function openRoleModal(i){
 function confirmRoleAdj(){
   const selected=getChipRoles('roleAdjChips');
   if(!selected.length){PC_toast('請選擇一個身份');return;}
-  const primaryRole=selected[0]; // 單選，只有一個
+  const primaryRole=selected[0];
 
   const targetMemberOrig=evt.members[pendingRoleIdx];
-  // 非發起人無法改 admin
   if(!isFounder() && primaryRole==='admin'){PC_toast('只有發起人可設定管理員');return;}
 
-  const evts=PC_getEvents();const e=evts.find(x=>x.id===eventId);
-  if(!e){PC_toast('找不到活動');return;}
   const targetEmail=targetMemberOrig?.email;
-  const m=targetEmail ? e.members.find(mb=>mb.email===targetEmail) : e.members[pendingRoleIdx];
-  if(!m){PC_toast('找不到成員');return;}
-
-  // 身分永遠包含 payer，primaryRole 決定主要顯示身分
   const roles=primaryRole==='payer'?['payer']:[primaryRole,'payer'];
-  m.roles=roles;m.role=primaryRole;
-  // 降為純成員時 status 維持，不清除資料
-  PC_saveEvents(evts);
   const roleLabel=primaryRole==='payer'?'成員':primaryRole==='counter'?'統計者':'管理員';
-  PC_sendNotify(m.email,'身份已調整 🎭',`你在「${evt.title}」的身份已更新為：${roleLabel}。`,'info');
+
+  // 用 PC_findEventById 找正確的 ownerKey（支援非自己建立的活動）
+  const found=PC_findEventById(eventId);
+  if(!found){PC_toast('找不到活動');return;}
+  const {ownerKey}=found;
+
+  const ok=PC_updateEventInStorage(ownerKey, eventId, e=>{
+    const m=targetEmail ? e.members.find(mb=>mb.email===targetEmail) : e.members[pendingRoleIdx];
+    if(!m){PC_toast('找不到成員');return;}
+    m.roles=roles;m.role=primaryRole;
+  });
+  if(!ok){PC_toast('儲存失敗');return;}
+
+  if(targetEmail) PC_sendNotify(targetEmail,'身份已調整 🎭',`你在「${evt.title}」的身份已更新為：${roleLabel}。`,'info');
   closeOverlay('roleOverlay');renderPage();PC_toast('✅ 身份已更新');
 }
 
@@ -1636,6 +1647,25 @@ function toggleSelectAll(){const payers=PC_getPayers(evt);const allSel=amtSelect
 function applyBatch(){const val=document.getElementById('batchAmt').value;if(!val)return;amtSelections.forEach(ri=>{const inp=document.getElementById('amt_'+ri);if(inp)inp.value=val;});PC_toast('✅ 已批次套用 $'+val);}
 function saveAmtEdit(){
   const evts=PC_getEvents();const e=evts.find(x=>x.id===eventId);
+
+  // 處理發起人（ri=-1 的特殊情況）
+  const founderInp=document.getElementById('amt_-1');
+  if(founderInp){
+    const newAmt=founderInp.value===''?null:parseFloat(founderInp.value)||0;
+    if(newAmt!==null){
+      let founderM=e.members.find(m=>m.email===e.ownerEmail);
+      if(!founderM){
+        // 發起人不在 members，新增一筆
+        founderM={email:e.ownerEmail,name:(e.ownerEmail||'').split('@')[0],roles:['payer'],role:'payer',status:'pending',paidAt:'',customAmount:null,txId:'',remark:'',payMethod:'',txHistory:[]};
+        e.members.unshift(founderM);
+      }
+      founderM.customAmount=newAmt;
+      const paidTotal=(founderM.txHistory||[]).reduce((s,tx)=>s+(Number(tx.amount)||0),0);
+      founderM.status=paidTotal>=newAmt?'paid':'pending';
+      if(founderM.email) PC_sendNotify(founderM.email,'繳費金額已更新 💰',`你在「${evt.title}」的應繳金額已更新為 $${newAmt}。`,'info');
+    }
+  }
+
   (e.members||[]).forEach((m,i)=>{
     const inp=document.getElementById('amt_'+i);
     if(inp){
